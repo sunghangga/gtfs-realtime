@@ -1,0 +1,31 @@
+version: "3"
+services:
+    gtfs-realtime-app:
+        image: gtfs-realtime
+        container_name: gtfs-realtime-app-test
+        build: .
+        ports:
+            - 8082:8082
+        depends_on:
+            - gtfs-db
+        environment:
+            - SPRING_DATASOURCE_URL=jdbc:postgresql://gtfs-db-test:5432/gtfs-timetable
+            - SPRING_DATASOURCE_USERNAME=postgres
+            - SPRING_DATASOURCE_PASSWORD=postgres
+            - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+            - SERVER_PORT=8082
+            - CONSUME_SECONDS_INTERVAL=20
+            - DELETE_REALTIME_DAYS_INTERVAL=2
+            - CRON_EXPRESSION_DELETE=0 0 10 * * *
+
+    gtfs-db:
+        image: postgres
+        container_name: gtfs-db-test
+        ports:
+            - 5433:5432
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=gtfs-timetable
+        volumes:
+            - D:\Project\Java\Test\test-docker-gtfs/gtfs-empty.sql:/docker-entrypoint-initdb.d/gtfs-empty.sql

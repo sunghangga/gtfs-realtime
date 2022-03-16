@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class GtfsRealtimeConsumer {
@@ -18,6 +20,8 @@ public class GtfsRealtimeConsumer {
 
     public void consumeFeed(String feedUrl) {
         Logger.info("Consuming data from feeder " + feedUrl);
+        String[] gtfsVersion = {"1.0", "2.0"};
+        List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
         long lastTimestamp = 0;
         boolean loop = true;
         while (loop) {
@@ -42,10 +46,11 @@ public class GtfsRealtimeConsumer {
                     if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
                         Logger.warn("Feed " + feedUrl + " 'incrementality' is " + feed.getHeader().getIncrementality());
                     }
-                    if (!feed.getHeader().getGtfsRealtimeVersion().contains("1.0")) {
+                    if (!gtfsVersionList.contains(feed.getHeader().getGtfsRealtimeVersion())) {
                         Logger.warn("Feed " + feedUrl + " is using GTFS-Realtime version " + feed.getHeader().getGtfsRealtimeVersion());
                     }
 
+                    // process data
                     try {
                         boolean result = initializeManager.processData(feed, feedUrl);
                         if (!result) loop = false;

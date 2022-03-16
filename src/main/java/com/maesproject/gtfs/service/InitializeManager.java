@@ -56,7 +56,7 @@ public class InitializeManager implements GlobalVariable {
         int tripUpdateSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {
-            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
 
             if (entity.hasTripUpdate()) {
                 TripUpdate tripUpdate = entity.getTripUpdate();
@@ -179,7 +179,7 @@ public class InitializeManager implements GlobalVariable {
         List<Integer> vehiclePositionIdList = new ArrayList<>();
 
         for (FeedEntity entity : feed.getEntityList()) {
-            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
 
             if (entity.hasVehicle()) {
                 VehiclePosition vehiclePosition = entity.getVehicle();
@@ -292,7 +292,7 @@ public class InitializeManager implements GlobalVariable {
         int alertSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {
-            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
 
             if (entity.hasAlert()) {
                 Alert alert = entity.getAlert();

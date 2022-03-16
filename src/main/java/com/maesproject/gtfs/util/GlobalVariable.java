@@ -2,9 +2,9 @@ package com.maesproject.gtfs.util;
 
 public interface GlobalVariable {
     // feed url
-    String URL_TRIP_UPDATE = "http://gtfs.ovapi.nl/nl/tripUpdates.pb";
-    String URL_VEHICLE_POSITION = "http://gtfs.ovapi.nl/nl/vehiclePositions.pb";
-    String URL_ALERT = "http://gtfs.ovapi.nl/nl/alerts.pb";
+    String URL_TRIP_UPDATE = "http://gtfs.viainfo.net/tripupdate/tripupdates.pb";
+    String URL_VEHICLE_POSITION = "http://gtfs.viainfo.net/vehicle/vehiclepositions.pb";
+    String URL_ALERT = "http://gtfs.viainfo.net/alert/alerts.pb";
 
     String[] DIRECTION = {"OUTBOUND", "INBOUND"};
 

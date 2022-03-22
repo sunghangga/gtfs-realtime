@@ -3,11 +3,11 @@ package com.maesproject.gtfs.util;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
-public class TimeConverter implements GlobalVariable {
+public class TimeConverter {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss'Z'");
 
-    public static String currentZoneTime() {
-        return LocalDateTime.now(ZoneId.of(TIME_ZONE_NL)).format(formatter);
+    public static String currentZoneTime(String timeZone) {
+        return LocalDateTime.now(ZoneId.of(timeZone)).format(formatter);
     }
 
     public static String convertTripDate(String tripDate) {
@@ -27,10 +27,10 @@ public class TimeConverter implements GlobalVariable {
         return zonedDateTime.toString();
     }
 
-    public static String unixToDateTime(long unixTime) {
+    public static String unixToDateTime(String timeZone, long unixTime) {
         if (unixTime <= 0) return "";
         Instant instant = Instant.ofEpochSecond(unixTime);
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(ZonedDateTime.ofInstant(instant, ZoneId.of(TIME_ZONE_NL)).format(formatter));
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(ZonedDateTime.ofInstant(instant, ZoneId.of(timeZone)).format(formatter));
         return zonedDateTime.toString();
     }
 }

@@ -10,6 +10,10 @@ import java.util.List;
 @Repository
 public interface VehiclePositionRepository extends JpaRepository<VehiclePositionEntity, Integer> {
 
+    List<VehiclePositionEntity> findByVehicleLabel(String vehicleLabel);
+
+    List<VehiclePositionEntity> findByVehicleLabelAndRouteId(String vehicleLabel, String routeId);
+
     VehiclePositionEntity findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTimeAndVehicleLabel(String tripId, String routeId, int directionId, String tripStartDate, String tripStartTime, String vehicleLabel);
 
     int deleteByIdIn(List<Integer> vehiclePositionIdList);

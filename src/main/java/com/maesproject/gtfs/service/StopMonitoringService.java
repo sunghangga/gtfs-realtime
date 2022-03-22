@@ -21,6 +21,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,10 @@ import java.util.List;
 public class StopMonitoringService implements GlobalVariable {
     @Autowired
     private StopMonitoringRepository stopMonitoringRepository;
+
+    @Value("${timezone}")
+    private String timeZone;
+
     private ObjectMapper mapper;
 
     public ObjectMapper initializeObjectMapper() {
@@ -74,7 +79,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String getStopMonitoringJson(String agencyId, String stopId) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId);
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
         if (resultList.isEmpty()) {
             return emptyDataMessageJson();
         } else {
@@ -83,7 +88,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String getStopMonitoringXml(String agencyId, String stopId) throws IOException {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId);
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
         if (resultList.isEmpty()) {
             return convertJsonToXml(emptyDataMessageJson(), "response");
         } else {
@@ -162,14 +167,14 @@ public class StopMonitoringService implements GlobalVariable {
 
             //-> ServiceDelivery
             ObjectNode serviceDelivery = mapper.createObjectNode();
-            serviceDelivery.put("ResponseTimestamp", TimeConverter.currentZoneTime());
+            serviceDelivery.put("ResponseTimestamp", TimeConverter.currentZoneTime(timeZone));
             serviceDelivery.put("ProducerRef", agencyId);
             serviceDelivery.put("Status", true);
 
             //-> StopMonitoringDelivery
             ObjectNode stopMonitoringDelivery = mapper.createObjectNode();
             stopMonitoringDelivery.put("version", "1.4");
-            stopMonitoringDelivery.put("ResponseTimestamp", TimeConverter.currentZoneTime());
+            stopMonitoringDelivery.put("ResponseTimestamp", TimeConverter.currentZoneTime(timeZone));
             stopMonitoringDelivery.put("Status", true);
 
             //-> MonitoredStopVisit
@@ -186,7 +191,7 @@ public class StopMonitoringService implements GlobalVariable {
                 }
                 i++;
                 ObjectNode monitoredStopVisitObj = mapper.createObjectNode();
-                monitoredStopVisitObj.put("RecordedAtTime", TimeConverter.unixToDateTime(stopMonitoring.getTimestamp()));
+                monitoredStopVisitObj.put("RecordedAtTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getTimestamp()));
                 monitoredStopVisitObj.put("MonitoringRef", stopMonitoring.getStopId());
 
                 //-> MonitoredVehicleJourney
@@ -228,9 +233,9 @@ public class StopMonitoringService implements GlobalVariable {
                 monitoredCall.put("VehicleLocationAtStop", "");
                 monitoredCall.put("VehicleAtStop", stopMonitoring.getCurrentStatus() == null ? null : stopMonitoring.getCurrentStatus().equals(STOPPED_AT));
                 monitoredCall.put("AimedArrivalTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedArrivalTime(), stopMonitoring.getTripStartDate()));
-                monitoredCall.put("ExpectedArrivalTime", TimeConverter.unixToDateTime(stopMonitoring.getExpectedArrivalTime()));
+                monitoredCall.put("ExpectedArrivalTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedArrivalTime()));
                 monitoredCall.put("AimedDepartureTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedDepartureTime(), stopMonitoring.getTripStartDate()));
-                monitoredCall.put("ExpectedDepartureTime", TimeConverter.unixToDateTime(stopMonitoring.getExpectedDepartureTime()));
+                monitoredCall.put("ExpectedDepartureTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedDepartureTime()));
 //                monitoredCall.put("Distances", "");
                 //<- MonitoredCall
 
@@ -291,7 +296,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public void createDummyStopMonitoring(String agencyId, String stopId) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId);
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
 
         StringBuilder sb = new StringBuilder();
         sb.append("timestamp").append(',');
@@ -358,76 +363,5 @@ public class StopMonitoringService implements GlobalVariable {
         } catch (FileNotFoundException e) {
             Logger.error(e.getMessage());
         }
-    }
-
-    public ServiceDelivery getServiceDelivery(String agencyId, String stopId) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId);
-        if (!resultList.isEmpty()) {
-            ServiceDelivery serviceDelivery = new ServiceDelivery();
-            serviceDelivery.setResponseTimestamp(LocalDateTime.now());
-            serviceDelivery.setProducerRef(agencyId);
-            serviceDelivery.setStatus(true);
-
-            StopMonitoringDelivery stopMonitoringDelivery = new StopMonitoringDelivery();
-            stopMonitoringDelivery.setVersion("1.0");
-            stopMonitoringDelivery.setResponseTimestamp(LocalDateTime.now());
-            stopMonitoringDelivery.setStatus(true);
-
-            List<MonitoredStopVisit> monitoredStopVisits = new ArrayList<>();
-            for (StopMonitoring stopMonitoring : resultList) {
-                LocalDateTime recordedAtTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(stopMonitoring.getTimestamp()), ZoneId.of(TIME_ZONE_NL));
-                LocalDateTime expectedArrivalTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(stopMonitoring.getExpectedArrivalTime()), ZoneId.of(TIME_ZONE_NL));
-                LocalDateTime expectedDepartureTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(stopMonitoring.getExpectedDepartureTime()), ZoneId.of(TIME_ZONE_NL));
-
-                MonitoredStopVisit monitoredStopVisit = new MonitoredStopVisit();
-                monitoredStopVisit.setRecordedAtTime(recordedAtTime);
-                monitoredStopVisit.setMonitoringRef(stopMonitoring.getStopId());
-
-                MonitoredVehicleJourney monitoredVehicleJourney = new MonitoredVehicleJourney();
-                monitoredVehicleJourney.setLineRef(stopMonitoring.getRouteId());
-                monitoredVehicleJourney.setDirectionRef(stopMonitoring.getDirectionId());
-//                monitoredVehicleJourney.setFramedVehicleJourneyRef();
-                monitoredVehicleJourney.setPublishedLineName(stopMonitoring.getRouteLongName());
-                monitoredVehicleJourney.setOperatorRef(stopMonitoring.getAgencyId());
-                monitoredVehicleJourney.setOriginRef(stopMonitoring.getOriginStopId());
-                monitoredVehicleJourney.setOriginRef(stopMonitoring.getOriginStopName());
-                monitoredVehicleJourney.setOriginRef(stopMonitoring.getDestinationStopId());
-                monitoredVehicleJourney.setOriginRef(stopMonitoring.getDestinationStopName());
-                monitoredVehicleJourney.setMonitored(true);
-                monitoredVehicleJourney.setInCongestion(stopMonitoring.getCongestionLevel());
-
-                VehicleLocation vehicleLocation = new VehicleLocation();
-                vehicleLocation.setLongitude(stopMonitoring.getPositionLongitude());
-                vehicleLocation.setLatitude(stopMonitoring.getPositionLatitude());
-
-                monitoredVehicleJourney.setVehicleLocation(vehicleLocation);
-                monitoredVehicleJourney.setBearing(stopMonitoring.getPositionBearing());
-                monitoredVehicleJourney.setOccupancy(stopMonitoring.getOccupancyStatus());
-                monitoredVehicleJourney.setVehicleRef(stopMonitoring.getVehicleLabel());
-
-                MonitoredCall monitoredCall = new MonitoredCall();
-                monitoredCall.setStopPointRef(stopMonitoring.getStopId());
-                monitoredCall.setStopPointName(stopMonitoring.getStopName());
-//                monitoredCall.setVehicleLocationAtStop(stopMonitoring.get("").toString());
-//                monitoredCall.setVehicleAtStop();
-                monitoredCall.setAimedArrivalTime(stopMonitoring.getAimedArrivalTime().toString());
-                monitoredCall.setExpectedArrivalTime(expectedArrivalTime);
-                monitoredCall.setAimedDepartureTime(stopMonitoring.getAimedDepartureTime().toString());
-                monitoredCall.setExpectedDepartureTime(expectedDepartureTime);
-//                monitoredCall.setDistances();
-
-                monitoredVehicleJourney.setMonitoredCall(monitoredCall);
-
-                monitoredStopVisit.setMonitoredVehicleJourney(monitoredVehicleJourney);
-
-                monitoredStopVisits.add(monitoredStopVisit);
-            }
-
-            stopMonitoringDelivery.setMonitoredStopVisits(monitoredStopVisits);
-
-            serviceDelivery.setStopMonitoringDelivery(stopMonitoringDelivery);
-            return serviceDelivery;
-        }
-        return null;
     }
 }

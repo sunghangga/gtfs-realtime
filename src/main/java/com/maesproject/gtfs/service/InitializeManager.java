@@ -4,7 +4,6 @@ import com.google.transit.realtime.GtfsRealtime.*;
 import com.maesproject.gtfs.entity.*;
 import com.maesproject.gtfs.repository.*;
 import com.maesproject.gtfs.util.DurationCounter;
-import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class InitializeManager implements GlobalVariable {
+public class InitializeManager {
     @Autowired
     private TripUpdateRepository tripUpdateRepository;
     @Autowired
@@ -29,23 +28,27 @@ public class InitializeManager implements GlobalVariable {
     private AlertRepository alertRepository;
     @Autowired
     private EntitySelectorRepository entitySelectorRepository;
+
     @Value("${print.count-info}")
     private boolean printCountInfo;
+    @Value("${timezone}")
+    private String timeZone;
+    @Value("${agency-filter}")
+    private String agencyFilter;
 
     public boolean processData(FeedMessage feedMessage, String feedUrl) {
-        switch (feedUrl) {
-            case URL_TRIP_UPDATE:
-                saveTripUpdate(feedMessage);
-                return true;
-            case URL_VEHICLE_POSITION:
-                saveVehiclePosition(feedMessage);
-                return true;
-            case URL_ALERT:
-                saveAlert(feedMessage);
-                return true;
-            default:
-                Logger.warn("No action available for feed " + feedUrl);
-                return false;
+        if (feedUrl.toLowerCase().contains("trip")) {
+            saveTripUpdate(feedMessage);
+            return true;
+        } else if (feedUrl.toLowerCase().contains("vehicle")) {
+            saveVehiclePosition(feedMessage);
+            return true;
+        } else if (feedUrl.toLowerCase().contains("alert")) {
+            saveAlert(feedMessage);
+            return true;
+        } else {
+            Logger.warn("No action available for feed " + feedUrl);
+            return false;
         }
     }
 
@@ -56,7 +59,9 @@ public class InitializeManager implements GlobalVariable {
         int tripUpdateSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {
-//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+            if (!agencyFilter.isEmpty()) {
+                if (!entity.getId().toUpperCase().contains(agencyFilter)) continue;
+            }
 
             if (entity.hasTripUpdate()) {
                 TripUpdate tripUpdate = entity.getTripUpdate();
@@ -97,8 +102,8 @@ public class InitializeManager implements GlobalVariable {
                 if (tripUpdate.hasTimestamp()) {
                     tripUpdateEntity.setTimestamp(tripUpdate.getTimestamp());
                 } else {
-                    LocalDateTime currentTimeNl = LocalDateTime.now(ZoneId.of(TIME_ZONE_NL));
-                    long seconds = currentTimeNl.atZone(ZoneId.of(TIME_ZONE_NL)).toEpochSecond();
+                    LocalDateTime currentTimeNl = LocalDateTime.now(ZoneId.of(timeZone));
+                    long seconds = currentTimeNl.atZone(ZoneId.of(timeZone)).toEpochSecond();
                     tripUpdateEntity.setTimestamp(seconds);
                 }
                 if (tripUpdate.hasDelay()) {
@@ -107,8 +112,19 @@ public class InitializeManager implements GlobalVariable {
                 tripUpdateEntity.setEntityId(entity.getId());
 
                 // find old data for this trip update
-                TripUpdateEntity oldTripUpdate = tripUpdateRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(tripUpdateEntity.getTripId(), tripUpdateEntity.getRouteId(), tripUpdateEntity.getDirectionId(), tripUpdateEntity.getTripStartDate(), tripUpdateEntity.getTripStartTime());
-                if (oldTripUpdate != null) tripUpdateIdList.add(oldTripUpdate.getId());
+                List<TripUpdateEntity> oldTripUpdateList = tripUpdateRepository.findByTripId(tripUpdateEntity.getTripId());
+                for (TripUpdateEntity tu : oldTripUpdateList) {
+                    tripUpdateIdList.add(tu.getId());
+                }
+
+//                TripUpdateEntity oldTripUpdate = tripUpdateRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(
+//                        tripUpdateEntity.getTripId(),
+//                        tripUpdateEntity.getRouteId(),
+//                        tripUpdateEntity.getDirectionId(),
+//                        tripUpdateEntity.getTripStartDate(),
+//                        tripUpdateEntity.getTripStartTime()
+//                );
+//                if (oldTripUpdate != null) tripUpdateIdList.add(oldTripUpdate.getId());
 
                 // save new trip update
                 tripUpdateRepository.save(tripUpdateEntity);
@@ -179,7 +195,9 @@ public class InitializeManager implements GlobalVariable {
         List<Integer> vehiclePositionIdList = new ArrayList<>();
 
         for (FeedEntity entity : feed.getEntityList()) {
-//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+            if (!agencyFilter.isEmpty()) {
+                if (!entity.getId().toUpperCase().contains(agencyFilter)) continue;
+            }
 
             if (entity.hasVehicle()) {
                 VehiclePosition vehiclePosition = entity.getVehicle();
@@ -257,16 +275,20 @@ public class InitializeManager implements GlobalVariable {
                 vehiclePositionEntities.add(vehiclePositionEntity);
 
                 // find old data for this vehicle position
-//                VehiclePositionEntity oldVehiclePosition = vehiclePositionRepository.findByVehicleLabelAndRouteId(vehiclePositionEntity.getVehicleLabel(), vehiclePositionEntity.getRouteId());
-                VehiclePositionEntity oldVehiclePosition = vehiclePositionRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTimeAndVehicleLabel(
-                        vehiclePositionEntity.getTripId(),
-                        vehiclePositionEntity.getRouteId(),
-                        vehiclePositionEntity.getDirectionId(),
-                        vehiclePositionEntity.getTripStartDate(),
-                        vehiclePositionEntity.getTripStartTime(),
-                        vehiclePositionEntity.getVehicleLabel()
-                );
-                if (oldVehiclePosition != null) vehiclePositionIdList.add(oldVehiclePosition.getId());
+                List<VehiclePositionEntity> oldVehiclePositionList = vehiclePositionRepository.findByVehicleLabel(vehiclePositionEntity.getVehicleLabel());
+                for (VehiclePositionEntity vp : oldVehiclePositionList) {
+                    vehiclePositionIdList.add(vp.getId());
+                }
+
+//                VehiclePositionEntity oldVehiclePosition = vehiclePositionRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTimeAndVehicleLabel(
+//                        vehiclePositionEntity.getTripId(),
+//                        vehiclePositionEntity.getRouteId(),
+//                        vehiclePositionEntity.getDirectionId(),
+//                        vehiclePositionEntity.getTripStartDate(),
+//                        vehiclePositionEntity.getTripStartTime(),
+//                        vehiclePositionEntity.getVehicleLabel()
+//                );
+//                if (oldVehiclePosition != null) vehiclePositionIdList.add(oldVehiclePosition.getId());
             }
         }
 
@@ -292,7 +314,9 @@ public class InitializeManager implements GlobalVariable {
         int alertSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {
-//            if (!entity.getId().toUpperCase().contains("CXX")) continue;
+            if (!agencyFilter.isEmpty()) {
+                if (!entity.getId().toUpperCase().contains(agencyFilter)) continue;
+            }
 
             if (entity.hasAlert()) {
                 Alert alert = entity.getAlert();
@@ -334,8 +358,13 @@ public class InitializeManager implements GlobalVariable {
                     alertEntity.setEntityId(entity.getId());
 
                     // find old data for this alert
-                    AlertEntity oldAlert = alertRepository.findByEntityId(alertEntity.getEntityId());
-                    if (oldAlert != null) alertIdList.add(oldAlert.getId());
+                    List<AlertEntity> oldAlertList = alertRepository.findByEntityId(alertEntity.getEntityId());
+                    for (AlertEntity a : oldAlertList) {
+                        alertIdList.add(a.getId());
+                    }
+
+//                    AlertEntity oldAlert = alertRepository.findByEntityId(alertEntity.getEntityId());
+//                    if (oldAlert != null) alertIdList.add(oldAlert.getId());
 
                     // save new alert
                     alertRepository.save(alertEntity);

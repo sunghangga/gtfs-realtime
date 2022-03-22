@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface TripUpdateRepository extends JpaRepository<TripUpdateEntity, Integer> {
 
+    List<TripUpdateEntity> findByTripId(String tripId);
+
     TripUpdateEntity findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(String tripId, String routeId, int directionId, String tripStartDate, String tripStartTime);
 
     int deleteByIdIn(List<Integer> tripUpdateIdList);

@@ -3,10 +3,10 @@ package com.maesproject.gtfs.service;
 import com.maesproject.gtfs.repository.AlertRepository;
 import com.maesproject.gtfs.repository.TripUpdateRepository;
 import com.maesproject.gtfs.repository.VehiclePositionRepository;
-import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,26 +15,56 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class ScheduleService implements GlobalVariable {
+public class ScheduleService {
+    @Autowired
+    private GtfsRealtimeConsumer gtfsRealtimeConsumer;
     @Autowired
     private TripUpdateRepository tripUpdateRepository;
     @Autowired
     private VehiclePositionRepository vehiclePositionRepository;
     @Autowired
     private AlertRepository alertRepository;
-    @Value("${delete.realtime.days.interval}")
-    private int numberOfDays;
+
+    @Value("${url.trip-update}")
+    private String urlTripUpdate;
+    @Value("${url.vehicle-position}")
+    private String urlVehiclePosition;
+    @Value("${url.alert}")
+    private String urlAlert;
+    @Value("${delete.realtime.start-day}")
+    private int startDay;
     @Value("${print.count-info}")
     private boolean printCountInfo;
+    @Value("${timezone}")
+    private String timeZone;
 
-    @Scheduled(cron = "${cron.expression.delete}", zone = TIME_ZONE_NL)
+    @Async
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    public void consumeTripUpdates() {
+        gtfsRealtimeConsumer.consumeFeedOnce(urlTripUpdate);
+    }
+
+    @Async
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    public void consumeVehiclePositions() {
+        gtfsRealtimeConsumer.consumeFeedOnce(urlVehiclePosition);
+    }
+
+    @Async
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    public void consumeAlerts() {
+        gtfsRealtimeConsumer.consumeFeedOnce(urlAlert);
+    }
+
+    @Async
+    @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")
     public void deleteExpiredRealtimeData() {
         try {
             // set timestamp parameter in seconds
-            LocalDateTime now = LocalDateTime.now(ZoneId.of(TIME_ZONE_NL));
-            LocalDateTime dayBefore = now.minusDays(numberOfDays);
-            long timeInSeconds = dayBefore.atZone(ZoneId.of(TIME_ZONE_NL)).toEpochSecond();
-            String timeDelete = dayBefore.atZone(ZoneId.of(TIME_ZONE_NL)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
+            LocalDateTime now = LocalDateTime.now(ZoneId.of(timeZone));
+            LocalDateTime dayBefore = now.minusDays(startDay);
+            long timeInSeconds = dayBefore.atZone(ZoneId.of(timeZone)).toEpochSecond();
+            String timeDelete = dayBefore.atZone(ZoneId.of(timeZone)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
 
             int resultTripUpdate = tripUpdateRepository.deleteByTimestampLessThan(timeInSeconds);
             int resultVehiclePosition = vehiclePositionRepository.deleteByTimestampLessThan(timeInSeconds);

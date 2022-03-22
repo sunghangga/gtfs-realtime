@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface AlertRepository extends JpaRepository<AlertEntity, Integer> {
 
-    AlertEntity findByEntityId(String entityId);
+    List<AlertEntity> findByEntityId(String entityId);
 
     int deleteByIdIn(List<Integer> alertIdList);
 

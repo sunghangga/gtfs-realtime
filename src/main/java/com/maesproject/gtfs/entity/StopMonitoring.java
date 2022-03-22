@@ -35,8 +35,6 @@ public class StopMonitoring {
 
     @Column(name = "vehicle_label")
     private String vehicleLabel;
-    @Column(name = "\"timestamp\"")
-    private long timestamp;
     @Column(name = "route_long_name")
     private String routeLongName;
     @Column(name = "origin_stop_id")
@@ -75,4 +73,8 @@ public class StopMonitoring {
     private String tripStartDate;
     @Column(name = "current_status")
     private String currentStatus;
+    @Column(name = "last_arrival_time", columnDefinition = "interval")
+    private Duration lastArrivalTime;
+    @Column(name = "\"timestamp\"")
+    private long timestamp;
 }

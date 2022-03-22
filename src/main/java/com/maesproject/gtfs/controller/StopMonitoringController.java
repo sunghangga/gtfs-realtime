@@ -33,6 +33,7 @@ public class StopMonitoringController {
     @GetMapping(path = "api/gtfs/stopmonitoring", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getStopMonitoring(@RequestParam(required = true) String agency_id,
                                                     @RequestParam(required = false) String stop_id,
+                                                    @RequestParam(required = false) String vehicle_id,
                                                     @RequestParam(required = false) String format) {
 
         HttpHeaders headers = new HttpHeaders();
@@ -40,7 +41,7 @@ public class StopMonitoringController {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             headers.setContentType(MediaType.APPLICATION_JSON);
             try {
-                String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id);
+                String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id, vehicle_id);
                 return new ResponseEntity<>(response, headers, HttpStatus.OK);
             } catch (Exception e) {
                 Logger.error(e.getMessage());
@@ -50,7 +51,7 @@ public class StopMonitoringController {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
             try {
-                String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id);
+                String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id, vehicle_id);
                 return new ResponseEntity<>(response, headers, HttpStatus.OK);
             } catch (Exception e) {
                 Logger.error(e.getMessage());

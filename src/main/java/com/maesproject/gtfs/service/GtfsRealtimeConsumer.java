@@ -25,17 +25,19 @@ public class GtfsRealtimeConsumer {
         try {
             URL url = new URL(feedUrl);
             FeedMessage feed = FeedMessage.parseFrom(url.openStream());
-            if (feed.getHeader().hasTimestamp()) {
-                // check header detail
-                if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
-                    Logger.warn("Feed " + feedUrl + " 'incrementality' is " + feed.getHeader().getIncrementality());
-                }
-                if (!gtfsVersionList.contains(feed.getHeader().getGtfsRealtimeVersion())) {
-                    Logger.warn("Feed " + feedUrl + " is using GTFS-Realtime version " + feed.getHeader().getGtfsRealtimeVersion());
-                }
-                // process data
-                initializeManager.processData(feed, feedUrl);
+            if (feed.getEntityList().isEmpty()) return;
+
+            // check header detail
+            if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
+                Logger.warn("Feed " + feedUrl + " 'incrementality' is " + feed.getHeader().getIncrementality());
             }
+            if (!gtfsVersionList.contains(feed.getHeader().getGtfsRealtimeVersion())) {
+                Logger.warn("Feed " + feedUrl + " is using GTFS-Realtime version " + feed.getHeader().getGtfsRealtimeVersion());
+            }
+
+            // process data
+            initializeManager.processData(feed, feedUrl);
+
         } catch (IOException e) {
             Logger.error(e.getMessage());
         }

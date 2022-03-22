@@ -78,8 +78,8 @@ public class StopMonitoringService implements GlobalVariable {
         return objectMapper;
     }
 
-    public String getStopMonitoringJson(String agencyId, String stopId) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
+    public String getStopMonitoringJson(String agencyId, String stopId, String vehicleLabel) {
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId, vehicleLabel);
         if (resultList.isEmpty()) {
             return emptyDataMessageJson();
         } else {
@@ -87,8 +87,8 @@ public class StopMonitoringService implements GlobalVariable {
         }
     }
 
-    public String getStopMonitoringXml(String agencyId, String stopId) throws IOException {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
+    public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel) throws IOException {
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId, vehicleLabel);
         if (resultList.isEmpty()) {
             return convertJsonToXml(emptyDataMessageJson(), "response");
         } else {
@@ -295,8 +295,8 @@ public class StopMonitoringService implements GlobalVariable {
         return xmlMapper.writer().withRootName(rootName).writeValueAsString(jsonNode);
     }
 
-    public void createDummyStopMonitoring(String agencyId, String stopId) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId);
+    public void createDummyStopMonitoring(String agencyId, String stopId, String vehicleLabel) {
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(timeZone, agencyId, stopId, vehicleLabel);
 
         StringBuilder sb = new StringBuilder();
         sb.append("timestamp").append(',');

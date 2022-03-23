@@ -234,8 +234,10 @@ public class StopMonitoringService implements GlobalVariable {
                 monitoredCall.put("VehicleAtStop", stopMonitoring.getCurrentStatus() == null ? null : stopMonitoring.getCurrentStatus().equals(STOPPED_AT));
                 monitoredCall.put("AimedArrivalTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedArrivalTime(), stopMonitoring.getTripStartDate()));
                 monitoredCall.put("ExpectedArrivalTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedArrivalTime()));
+                monitoredCall.put("ArrivalDelay", stopMonitoring.getArrivalDelay());
                 monitoredCall.put("AimedDepartureTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedDepartureTime(), stopMonitoring.getTripStartDate()));
                 monitoredCall.put("ExpectedDepartureTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedDepartureTime()));
+                monitoredCall.put("DepartureDelay", stopMonitoring.getDepartureDelay());
 //                monitoredCall.put("Distances", "");
                 //<- MonitoredCall
 

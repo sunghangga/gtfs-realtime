@@ -65,10 +65,14 @@ public class StopMonitoring {
     private Duration aimedArrivalTime;
     @Column(name = "expected_arrival_time")
     private long expectedArrivalTime;
+    @Column(name = "arrival_delay")
+    private int arrivalDelay;
     @Column(name = "aimed_departure_time", columnDefinition = "interval")
     private Duration aimedDepartureTime;
     @Column(name = "expected_departure_time")
     private long expectedDepartureTime;
+    @Column(name = "departure_delay")
+    private int departureDelay;
     @Column(name = "trip_start_date")
     private String tripStartDate;
     @Column(name = "current_status")

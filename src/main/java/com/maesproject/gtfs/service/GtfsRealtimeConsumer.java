@@ -36,7 +36,7 @@ public class GtfsRealtimeConsumer {
             }
 
             // process data
-            initializeManager.processData(feed, feedUrl);
+            initializeManager.initializeData(feed, feedUrl);
 
         } catch (IOException e) {
             Logger.error(e.getMessage());
@@ -78,7 +78,7 @@ public class GtfsRealtimeConsumer {
 
                     // process data
                     try {
-                        boolean result = initializeManager.processData(feed, feedUrl);
+                        boolean result = initializeManager.initializeData(feed, feedUrl);
                         if (!result) loop = false;
                     } catch (Exception e) {
                         Logger.error(e.getMessage());

@@ -36,7 +36,7 @@ public class InitializeManager {
     @Value("${agency-filter}")
     private String agencyFilter;
 
-    public boolean processData(FeedMessage feedMessage, String feedUrl) {
+    public boolean initializeData(FeedMessage feedMessage, String feedUrl) {
         if (feedUrl.toLowerCase().contains("trip")) {
             saveTripUpdate(feedMessage);
             return true;

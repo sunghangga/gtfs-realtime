@@ -64,7 +64,7 @@ public class ScheduleService {
             LocalDateTime now = LocalDateTime.now(ZoneId.of(timeZone));
             LocalDateTime dayBefore = now.minusDays(startDay);
             long timeInSeconds = dayBefore.atZone(ZoneId.of(timeZone)).toEpochSecond();
-            String timeDelete = dayBefore.atZone(ZoneId.of(timeZone)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
+            String timeDelete = dayBefore.atZone(ZoneId.of(timeZone)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
             int resultTripUpdate = tripUpdateRepository.deleteByTimestampLessThan(timeInSeconds);
             int resultVehiclePosition = vehiclePositionRepository.deleteByTimestampLessThan(timeInSeconds);

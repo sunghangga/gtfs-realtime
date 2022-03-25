@@ -4,7 +4,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class TimeConverter {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss'Z'");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     public static String currentZoneTime(String timeZone) {
         return LocalDateTime.now(ZoneId.of(timeZone)).format(formatter);

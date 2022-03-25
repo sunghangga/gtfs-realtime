@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -20,12 +22,22 @@ public class GtfsRealtimeConsumer {
     private int consumeInterval;
 
     public void consumeFeedOnce(String feedUrl) {
-        String[] gtfsVersion = {"1.0", "2.0"};
-        List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
         try {
-            URL url = new URL(feedUrl);
-            FeedMessage feed = FeedMessage.parseFrom(url.openStream());
-            if (feed.getEntityList().isEmpty()) return;
+            String[] gtfsVersion = {"1.0", "2.0"};
+            List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
+
+            FeedMessage feed;
+            try {
+                URL url = new URL(feedUrl);
+                feed = FeedMessage.parseFrom(url.openStream());
+                if (feed.getEntityList().isEmpty()) return;
+            } catch (FileNotFoundException | SocketException e) {
+                return;
+            } catch (IOException e) {
+                Logger.error("Error while parsing GTFS data from " + feedUrl);
+                Logger.error(e.getMessage());
+                return;
+            }
 
             // check header detail
             if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
@@ -38,7 +50,7 @@ public class GtfsRealtimeConsumer {
             // process data
             initializeManager.initializeData(feed, feedUrl);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.error(e.getMessage());
         }
     }
@@ -57,7 +69,8 @@ public class GtfsRealtimeConsumer {
                 feed = FeedMessage.parseFrom(url.openStream());
             } catch (IOException e) {
                 int delay = 10;
-                Logger.error("Error while getting feed data! " + e.getMessage());
+                Logger.error("Error while parsing GTFS data from " + feedUrl);
+                Logger.error(e.getMessage());
                 Logger.info("Reconnecting to " + feedUrl + " in " + delay + " seconds");
                 wait(delay);
                 continue;

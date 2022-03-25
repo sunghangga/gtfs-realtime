@@ -13,13 +13,11 @@ import java.util.List;
 public interface StopMonitoringRepository extends JpaRepository<StopMonitoring, StopMonitoringCompositeId> {
 
     @Query(value = "select sm from StopMonitoring sm " +
-            "where (to_date(sm.tripStartDate, 'YYYYMMDD') + sm.lastArrivalTime) >= timezone(:timeZone, CURRENT_TIMESTAMP) " +
-            "and sm.agencyId = :agencyId " +
+            "where sm.agencyId = :agencyId " +
             "and (:stopId is null or sm.stopId = :stopId) " +
             "and (:vehicleLabel is null or sm.vehicleLabel = :vehicleLabel) " +
             "")
     List<StopMonitoring> getStopMonitoring(
-            @Param("timeZone") String timeZone,
             @Param("agencyId") String agencyId,
             @Param("stopId") String stopId,
             @Param("vehicleLabel") String vehicleLabel);

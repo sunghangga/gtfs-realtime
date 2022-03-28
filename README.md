@@ -107,7 +107,7 @@ volumes:
 docker-compose up --build / docker-compose up --build -d
 ```
 
-Docker will download postgres image if not exist and build image for the app and creates container for both.
+Docker will download postgres image if not exist and build image for the app and creates container for both image.
 
 #### 4. Wait until the docker-compose process complete and test the API
 

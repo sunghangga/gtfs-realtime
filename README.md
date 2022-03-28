@@ -12,7 +12,7 @@ git clone https://dewa_maestronic@bitbucket.org/dewa_maestronic/gtfs-realtime.gi
 
 #### 2. Get postgres database from [here](https://maestronicoperationsltd-my.sharepoint.com/:f:/g/personal/angga_putra_maes-electronic_co_id/Eng41HxYYAVFrI5Giz13bCwB24bDxE5CnJNqlDOZUazTDQ?e=RhL27U)
 #### 3. Open project using IntelliJ or other java IDE
-#### 4. Set database connection in the application.properties file:
+#### 4. Set database connection in the _application.properties_ file:
 
 ```
 spring.datasource.url=jdbc:postgresql://hostname:port/database_name
@@ -21,7 +21,7 @@ spring.datasource.password=password
 ```
 
 #### 5. Set up the settings for GTFS-realtime feed
-The settings are provided in the application.properties file. 
+The settings are provided in the _application.properties_ file. 
 Currently, there are 2 feed url available from 2 datasource, Ovapi (Netherlands) and VIA (US). 
 Choose only one by commenting other settings:
 

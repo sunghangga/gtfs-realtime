@@ -16,7 +16,7 @@ git clone https://dewa_maestronic@bitbucket.org/dewa_maestronic/gtfs-realtime.gi
 
 ```
 spring.datasource.url=jdbc:postgresql://hostname:port/database_name
-spring.datasource.username=user_name
+spring.datasource.username=username
 spring.datasource.password=password
 ```
 

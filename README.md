@@ -12,7 +12,7 @@ git clone https://dewa_maestronic@bitbucket.org/dewa_maestronic/gtfs-realtime.gi
 
 #### 2. Get postgres database from [here](https://maestronicoperationsltd-my.sharepoint.com/:f:/g/personal/angga_putra_maes-electronic_co_id/Eng41HxYYAVFrI5Giz13bCwB24bDxE5CnJNqlDOZUazTDQ?e=RhL27U)
 #### 3. Open project using IntelliJ or other java IDE
-#### 4. Set the database connection in the application.properties file:
+#### 4. Set database connection in the application.properties file:
 
 ```
 spring.datasource.url=jdbc:postgresql://hostname:port/database_name
@@ -59,4 +59,4 @@ java -jar target/gtfs-realtime-0.0.1-SNAPSHOT.jar
 hostname:port/api/gtfs/stopmonitoring?agency_id=xxx&format=json
 ```
 
-> Full API documentation are available [here](https://maestronicoperationsltd-my.sharepoint.com/:w:/g/personal/angga_putra_maes-electronic_co_id/EQprBGgAZF1Bnm8ou-L2YmUBXblS9Nmulo4kf9QagtwD7w)
+Full API documentation are available [here](https://maestronicoperationsltd-my.sharepoint.com/:w:/g/personal/angga_putra_maes-electronic_co_id/EQprBGgAZF1Bnm8ou-L2YmUBXblS9Nmulo4kf9QagtwD7w)

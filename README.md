@@ -22,7 +22,7 @@ spring.datasource.password=password
 
 #### 5. Set up the settings for GTFS-realtime feed
 The settings are provided in the _application.properties_ file. 
-Currently, there are 2 feed url available from 2 datasource, Ovapi (Netherlands) and VIA (US). 
+Currently, there are 2 feed url available, Ovapi (Netherlands) and VIA (US). 
 Choose only one by commenting other settings:
 
 ```

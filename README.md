@@ -1,4 +1,4 @@
-# GTFS-REALTIME
+# GTFS-Realtime
 
 This app collects GTFS-Realtime data (trip updates, vehicle positions and alerts) from available feed url and save it to the database.
 
@@ -109,6 +109,9 @@ docker-compose up --build / docker-compose up --build -d
 
 Docker will download postgres image if not exist and build image for the app and creates container for both image.
 
-#### 4. Wait until the docker-compose process complete and test the API
+App will collect data after the docker-compose process complete.
 
+#### 4. Test the API
+
+--- 
 > Full API documentation are available [here](https://maestronicoperationsltd-my.sharepoint.com/:w:/g/personal/angga_putra_maes-electronic_co_id/EQprBGgAZF1Bnm8ou-L2YmUBXblS9Nmulo4kf9QagtwD7w)

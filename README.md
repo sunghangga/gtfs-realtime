@@ -91,9 +91,9 @@ environment:
 
 ```
 environment:
-    - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=postgres
-    - POSTGRES_DB=gtfs-timetable
+    - POSTGRES_USER=username
+    - POSTGRES_PASSWORD=password
+    - POSTGRES_DB=database_name
 ```
 
 #### 2. Set directory for sql file to be imported to the postgres container in the _docker-compose_ file:

@@ -64,9 +64,11 @@ The app will automatically collect all GTFS-Realtime data and save it into the d
 hostname:port/api/gtfs/stopmonitoring?agency_id=xxx&format=json
 ```
 
-The API will return stop monitoring data in json format.
+The API will return stop monitoring data from xxx agency (user/operator) in json format.
 
->You can also run the project directly from the IDE by running the main method in _GtfsRealtimeApplication_ file.
+> In order to get the data from the API, make sure GTFS-Static data already imported to the database.
+> Otherwise, no data will be available for response.
+> GTFS-Realtime data need to be joined with the GTFS-Static data in the query.
 
 ## Docker
 

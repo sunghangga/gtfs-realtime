@@ -1,5 +1,6 @@
 package com.maesproject.gtfs.service;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,8 +33,6 @@ public class GtfsRealtimeConsumer {
                 URL url = new URL(feedUrl);
                 feed = FeedMessage.parseFrom(url.openStream());
                 if (feed.getEntityList().isEmpty()) return;
-            } catch (FileNotFoundException | SocketException e) {
-                return;
             } catch (IOException e) {
                 Logger.error("Error while parsing GTFS data from " + feedUrl);
                 Logger.error(e.getMessage());

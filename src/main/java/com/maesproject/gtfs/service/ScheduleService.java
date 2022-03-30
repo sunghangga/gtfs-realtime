@@ -3,6 +3,7 @@ package com.maesproject.gtfs.service;
 import com.maesproject.gtfs.repository.AlertRepository;
 import com.maesproject.gtfs.repository.TripUpdateRepository;
 import com.maesproject.gtfs.repository.VehiclePositionRepository;
+import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class ScheduleService {
+public class ScheduleService implements GlobalVariable {
     @Autowired
     private GtfsRealtimeConsumer gtfsRealtimeConsumer;
     @Autowired
@@ -40,20 +41,20 @@ public class ScheduleService {
 
     @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
-    public void consumeTripUpdates() {
-        gtfsRealtimeConsumer.consumeFeedOnce(urlTripUpdate);
+    public void consumeTripUpdate() {
+        gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE);
     }
 
     @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
-    public void consumeVehiclePositions() {
-        gtfsRealtimeConsumer.consumeFeedOnce(urlVehiclePosition);
+    public void consumeVehiclePosition() {
+        gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION);
     }
 
     @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
-    public void consumeAlerts() {
-        gtfsRealtimeConsumer.consumeFeedOnce(urlAlert);
+    public void consumeAlert() {
+        gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT);
     }
 
     @Async

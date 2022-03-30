@@ -1,5 +1,6 @@
 package com.maesproject.gtfs.service;
 
+import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -27,11 +28,19 @@ public class StartUpService {
         System.out.println("\nGTFS-Realtime-Consumer is running...\n");
     }
 
-//    @EventListener(ApplicationReadyEvent.class)
-//    @Order(2)
-//    public void deleteExpiredRealtimeData() {
-//        scheduleService.deleteExpiredRealtimeData();
-//    }
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(2)
+    public void printFeedSources() {
+        Logger.info("Consuming data from " + urlTripUpdate);
+        Logger.info("Consuming data from " + urlVehiclePosition);
+        Logger.info("Consuming data from " + urlAlert);
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(3)
+    public void deleteExpiredRealtimeData() {
+        scheduleService.deleteExpiredRealtimeData();
+    }
 
 //    @EventListener(ApplicationReadyEvent.class)
 //    @Order(3)

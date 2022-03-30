@@ -19,7 +19,7 @@ public class GtfsRealtimeConsumer {
     @Value("${consume.realtime.seconds.interval}")
     private int consumeInterval;
 
-    public void consumeFeedOnce(String feedUrl) {
+    public void consume(String feedUrl, String type) {
         try {
             String[] gtfsVersion = {"1.0", "2.0"};
             List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
@@ -44,15 +44,16 @@ public class GtfsRealtimeConsumer {
             }
 
             // process data
-            initializeManager.initializeData(feed, feedUrl);
+            initializeManager.initializeData(feed, feedUrl, type);
 
         } catch (Exception e) {
+            Logger.error("Error consuming GTFS feed from " + feedUrl);
             Logger.error(e.getMessage());
         }
     }
 
     public void consumeFeed(String feedUrl) {
-        Logger.info("Consuming data from feeder " + feedUrl);
+        Logger.info("Consuming data from " + feedUrl);
         String[] gtfsVersion = {"1.0", "2.0"};
         List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
         long lastTimestamp = 0;

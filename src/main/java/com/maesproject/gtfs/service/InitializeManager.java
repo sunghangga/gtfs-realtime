@@ -4,6 +4,7 @@ import com.google.transit.realtime.GtfsRealtime.*;
 import com.maesproject.gtfs.entity.*;
 import com.maesproject.gtfs.repository.*;
 import com.maesproject.gtfs.util.DurationCounter;
+import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class InitializeManager {
+public class InitializeManager implements GlobalVariable {
     @Autowired
     private TripUpdateRepository tripUpdateRepository;
     @Autowired
@@ -35,6 +36,22 @@ public class InitializeManager {
     private String timeZone;
     @Value("${agency-filter}")
     private String agencyFilter;
+
+    public void initializeData(FeedMessage feedMessage, String feedUrl, String type) {
+        switch (type) {
+            case GTFS_TRIP_UPDATE:
+                saveTripUpdate(feedMessage);
+                return;
+            case GTFS_VEHICLE_POSITION:
+                saveVehiclePosition(feedMessage);
+                return;
+            case GTFS_ALERT:
+                saveAlert(feedMessage);
+                return;
+            default:
+                Logger.warn("No action available for feed " + feedUrl);
+        }
+    }
 
     public boolean initializeData(FeedMessage feedMessage, String feedUrl) {
         if (feedUrl.toLowerCase().contains("trip")) {

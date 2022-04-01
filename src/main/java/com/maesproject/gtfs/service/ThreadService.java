@@ -9,8 +9,8 @@ public class ThreadService {
     @Autowired
     private GtfsRealtimeConsumer gtfsRealtimeConsumer;
 
-    @Async
-    public void consumeFeed(String feedUrl) {
-        gtfsRealtimeConsumer.consumeFeed(feedUrl);
-    }
+//    @Async
+//    public void consumeFeed(String feedUrl) {
+//        gtfsRealtimeConsumer.consumeFeed(feedUrl);
+//    }
 }

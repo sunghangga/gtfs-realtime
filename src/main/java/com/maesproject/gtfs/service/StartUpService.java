@@ -36,12 +36,6 @@ public class StartUpService {
         Logger.info("Consuming data from " + urlAlert);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(3)
-    public void deleteExpiredRealtimeData() {
-        scheduleService.deleteExpiredRealtimeData();
-    }
-
 //    @EventListener(ApplicationReadyEvent.class)
 //    @Order(3)
 //    public void startGtfsRealtimeConsumer() {

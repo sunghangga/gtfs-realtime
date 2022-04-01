@@ -7,7 +7,7 @@ import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
+@Order(3)
 public class ScheduleService implements GlobalVariable {
     @Autowired
     private GtfsRealtimeConsumer gtfsRealtimeConsumer;
@@ -39,25 +40,21 @@ public class ScheduleService implements GlobalVariable {
     @Value("${timezone}")
     private String timeZone;
 
-    @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeTripUpdate() {
         gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE);
     }
 
-    @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeVehiclePosition() {
         gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION);
     }
 
-    @Async
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeAlert() {
         gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT);
     }
 
-    @Async
     @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")
     public void deleteExpiredRealtimeData() {
         try {

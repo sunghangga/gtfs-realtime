@@ -177,106 +177,110 @@ public class StopMonitoringService implements GlobalVariable {
             stopMonitoringDelivery.put("ResponseTimestamp", TimeConverter.currentZoneTime(timeZone));
             stopMonitoringDelivery.put("Status", true);
 
-            //-> MonitoredStopVisit
             ArrayNode monitoredStopVisit = mapper.createArrayNode();
-            //-> MonitoredStopVisitCancellation
             ArrayNode monitoredStopVisitCancellation = mapper.createArrayNode();
 
             int i = 0;
             int size = stopMonitoringList.size();
             for (StopMonitoring stopMonitoring : stopMonitoringList) {
                 if (stopMonitoring == null) {
-                    Logger.warn("Stop Monitoring with null value found at index " + i + " from " + size + " data!");
+                    Logger.error("Stop Monitoring result with null value found at index " + i + " from " + size + " data!");
                     continue;
                 }
                 i++;
-                ObjectNode monitoredStopVisitObj = mapper.createObjectNode();
-                monitoredStopVisitObj.put("RecordedAtTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getTimestamp()));
-                monitoredStopVisitObj.put("MonitoringRef", stopMonitoring.getStopId());
 
-                //-> MonitoredVehicleJourney
-                ObjectNode monitoredVehicleJourney = mapper.createObjectNode();
-                monitoredVehicleJourney.put("RouteRef", stopMonitoring.getRouteId());
-                monitoredVehicleJourney.put("DirectionRef", DIRECTION[stopMonitoring.getDirectionId()]);
+                if (stopMonitoring.getTripScheduleRelationship() != null && stopMonitoring.getTripScheduleRelationship().equals("CANCELED")) {
+                    //-> MonitoredStopVisitCancellation
+                    ObjectNode monitoredStopVisitCancellationObj = mapper.createObjectNode();
+                    monitoredStopVisitCancellationObj.put("RecordedAtTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getTimestamp()));
+                    monitoredStopVisitCancellationObj.put("MonitoringRef", stopMonitoring.getStopId());
+                    monitoredStopVisitCancellationObj.put("RouteRef", stopMonitoring.getRouteId());
+                    monitoredStopVisitCancellationObj.put("DirectionRef", DIRECTION[stopMonitoring.getDirectionId()]);
 
-                //-> FramedVehicleJourneyRef
-                ObjectNode framedVehicleJourneyRef = mapper.createObjectNode();
-                framedVehicleJourneyRef.put("DataFrameRef", TimeConverter.convertTripDate(stopMonitoring.getTripStartDate()));
-                framedVehicleJourneyRef.put("DatedVehicleJourneyRef", stopMonitoring.getTripId());
-                //<- FramedVehicleJourneyRef
+                    //-> FramedVehicleJourneyRef
+                    ObjectNode framedVehicleJourneyRef2 = mapper.createObjectNode();
+                    framedVehicleJourneyRef2.put("DataFrameRef", TimeConverter.convertTripDate(stopMonitoring.getTripStartDate()));
+                    framedVehicleJourneyRef2.put("DatedVehicleJourneyRef", stopMonitoring.getTripId());
+                    //-< FramedVehicleJourneyRef
 
-                monitoredVehicleJourney.set("FramedVehicleJourneyRef", framedVehicleJourneyRef);
-                monitoredVehicleJourney.put("PublishedRouteName", stopMonitoring.getRouteLongName());
-                monitoredVehicleJourney.put("OperatorRef", stopMonitoring.getAgencyId());
-                monitoredVehicleJourney.put("OriginRef", stopMonitoring.getOriginStopId());
-                monitoredVehicleJourney.put("OriginName", stopMonitoring.getOriginStopName());
-                monitoredVehicleJourney.put("DestinationRef", stopMonitoring.getDestinationStopId());
-                monitoredVehicleJourney.put("DestinationName", stopMonitoring.getDestinationStopName());
-                monitoredVehicleJourney.put("Monitored", true);
-                monitoredVehicleJourney.put("InCongestion", stopMonitoring.getCongestionLevel());
+                    monitoredStopVisitCancellationObj.set("FramedVehicleJourneyRef", framedVehicleJourneyRef2);
+                    monitoredStopVisitCancellation.add(monitoredStopVisitCancellationObj);
+                    //<- MonitoredStopVisitCancellation
+                } else {
+                    //-> MonitoredStopVisit
+                    ObjectNode monitoredStopVisitObj = mapper.createObjectNode();
+                    monitoredStopVisitObj.put("RecordedAtTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getTimestamp()));
+                    monitoredStopVisitObj.put("MonitoringRef", stopMonitoring.getStopId());
 
-                //-> VehicleLocation
-                ObjectNode vehicleLocation = mapper.createObjectNode();
-                vehicleLocation.put("Longitude", stopMonitoring.getPositionLongitude());
-                vehicleLocation.put("Latitude", stopMonitoring.getPositionLatitude());
-                //<- VehicleLocation
+                    //-> MonitoredVehicleJourney
+                    ObjectNode monitoredVehicleJourney = mapper.createObjectNode();
+                    monitoredVehicleJourney.put("RouteRef", stopMonitoring.getRouteId());
+                    monitoredVehicleJourney.put("DirectionRef", DIRECTION[stopMonitoring.getDirectionId()]);
 
-                monitoredVehicleJourney.set("VehicleLocation", vehicleLocation);
-                monitoredVehicleJourney.put("Bearing", stopMonitoring.getPositionBearing());
-                monitoredVehicleJourney.put("Occupancy", stopMonitoring.getOccupancyStatus());
-                monitoredVehicleJourney.put("VehicleRef", stopMonitoring.getVehicleLabel());
+                    //-> FramedVehicleJourneyRef
+                    ObjectNode framedVehicleJourneyRef = mapper.createObjectNode();
+                    framedVehicleJourneyRef.put("DataFrameRef", TimeConverter.convertTripDate(stopMonitoring.getTripStartDate()));
+                    framedVehicleJourneyRef.put("DatedVehicleJourneyRef", stopMonitoring.getTripId());
+                    //<- FramedVehicleJourneyRef
 
-                //-> MonitoredCall
-                ObjectNode monitoredCall = mapper.createObjectNode();
-                monitoredCall.put("StopPointRef", stopMonitoring.getStopId());
-                monitoredCall.put("StopPointName", stopMonitoring.getStopName());
-                monitoredCall.put("VehicleLocationAtStop", "");
-                monitoredCall.put("VehicleAtStop", stopMonitoring.getCurrentStatus() == null ? null : stopMonitoring.getCurrentStatus().equals(STOPPED_AT));
-                monitoredCall.put("AimedArrivalTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedArrivalTime(), stopMonitoring.getTripStartDate()));
-                monitoredCall.put("ExpectedArrivalTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedArrivalTime()));
-                monitoredCall.put("ArrivalDelay", stopMonitoring.getArrivalDelay());
-                monitoredCall.put("AimedDepartureTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedDepartureTime(), stopMonitoring.getTripStartDate()));
-                monitoredCall.put("ExpectedDepartureTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedDepartureTime()));
-                monitoredCall.put("DepartureDelay", stopMonitoring.getDepartureDelay());
-//                monitoredCall.put("Distances", "");
-                //<- MonitoredCall
+                    monitoredVehicleJourney.set("FramedVehicleJourneyRef", framedVehicleJourneyRef);
 
-                monitoredVehicleJourney.set("MonitoredCall", monitoredCall);
-                //<- MonitoredVehicleJourney
+                    monitoredVehicleJourney.put("PublishedRouteName", stopMonitoring.getRouteLongName());
+                    monitoredVehicleJourney.put("OperatorRef", stopMonitoring.getAgencyId());
+                    monitoredVehicleJourney.put("OriginRef", stopMonitoring.getOriginStopId());
+                    monitoredVehicleJourney.put("OriginName", stopMonitoring.getOriginStopName());
+                    monitoredVehicleJourney.put("DestinationRef", stopMonitoring.getDestinationStopId());
+                    monitoredVehicleJourney.put("DestinationName", stopMonitoring.getDestinationStopName());
+                    monitoredVehicleJourney.put("Monitored", true);
+                    monitoredVehicleJourney.put("InCongestion", stopMonitoring.getCongestionLevel());
 
-                monitoredStopVisitObj.set("MonitoredVehicleJourney", monitoredVehicleJourney);
-                monitoredStopVisit.add(monitoredStopVisitObj);
-                //<- MonitoredStopVisit
+                    //-> VehicleLocation
+                    ObjectNode vehicleLocation = mapper.createObjectNode();
+                    vehicleLocation.put("Longitude", stopMonitoring.getPositionLongitude());
+                    vehicleLocation.put("Latitude", stopMonitoring.getPositionLatitude());
+                    //<- VehicleLocation
 
-                /*
-                ObjectNode monitoredStopVisitCancellationObj = mapper.createObjectNode();
-                monitoredStopVisitCancellationObj.put("RecordedAtTime", "");
-                monitoredStopVisitCancellationObj.put("MonitoringRef", "");
-                monitoredStopVisitCancellationObj.put("RouteRef", "");
-                monitoredStopVisitCancellationObj.put("DirectionRef", "");
+                    monitoredVehicleJourney.set("VehicleLocation", vehicleLocation);
 
-                //-> FramedVehicleJourneyRef
-                ObjectNode framedVehicleJourneyRef2 = mapper.createObjectNode();
-                framedVehicleJourneyRef2.put("DataFrameRef", "");
-                framedVehicleJourneyRef2.put("DatedVehicleJourneyRef", "");
-                //-< FramedVehicleJourneyRef
+                    monitoredVehicleJourney.put("Bearing", stopMonitoring.getPositionBearing());
+                    monitoredVehicleJourney.put("Occupancy", stopMonitoring.getOccupancyStatus());
+                    monitoredVehicleJourney.put("VehicleRef", stopMonitoring.getVehicleLabel());
 
-                monitoredStopVisitCancellationObj.set("FramedVehicleJourneyRef", framedVehicleJourneyRef2);
-                monitoredStopVisitCancellation.add(monitoredStopVisitCancellationObj);
-                //<- MonitoredStopVisitCancellation
-                */
+                    //-> MonitoredCall
+                    ObjectNode monitoredCall = mapper.createObjectNode();
+                    monitoredCall.put("StopScheduleRelationship", stopMonitoring.getStopScheduleRelationship());
+                    monitoredCall.put("StopPointRef", stopMonitoring.getStopId());
+                    monitoredCall.put("StopPointName", stopMonitoring.getStopName());
+                    monitoredCall.put("VehicleLocationAtStop", "");
+                    monitoredCall.put("VehicleAtStop", stopMonitoring.getCurrentStatus() == null ? null : stopMonitoring.getCurrentStatus().equals(STOPPED_AT));
+                    monitoredCall.put("AimedArrivalTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedArrivalTime(), stopMonitoring.getTripStartDate()));
+                    monitoredCall.put("ExpectedArrivalTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedArrivalTime()));
+                    monitoredCall.put("ArrivalDelay", stopMonitoring.getArrivalDelay());
+                    monitoredCall.put("AimedDepartureTime", TimeConverter.durationToZoneTime(stopMonitoring.getAimedDepartureTime(), stopMonitoring.getTripStartDate()));
+                    monitoredCall.put("ExpectedDepartureTime", TimeConverter.unixToDateTime(timeZone, stopMonitoring.getExpectedDepartureTime()));
+                    monitoredCall.put("DepartureDelay", stopMonitoring.getDepartureDelay());
+                    //monitoredCall.put("Distances", "");
+                    //<- MonitoredCall
 
+                    monitoredVehicleJourney.set("MonitoredCall", monitoredCall);
+                    //<- MonitoredVehicleJourney
+
+                    monitoredStopVisitObj.set("MonitoredVehicleJourney", monitoredVehicleJourney);
+                    monitoredStopVisit.add(monitoredStopVisitObj);
+                    //<- MonitoredStopVisit
+                }
             }
 
             stopMonitoringDelivery.set("MonitoredStopVisit", monitoredStopVisit);
-//            stopMonitoringDelivery.set("MonitoredStopVisitCancellation", monitoredStopVisitCancellation);
+            if (monitoredStopVisitCancellation.size() > 0) {
+                stopMonitoringDelivery.set("MonitoredStopVisitCancellation", monitoredStopVisitCancellation);
+            }
             //<- StopMonitoringDelivery
 
             serviceDelivery.set("StopMonitoringDelivery", stopMonitoringDelivery);
             //<- ServiceDelivery
 
             gtfs.set("ServiceDelivery", serviceDelivery);
-//            System.out.println(mapper.writer().withDefaultPrettyPrinter().writeValueAsString(gtfs));
             return gtfs.toString();
         }
         return "";

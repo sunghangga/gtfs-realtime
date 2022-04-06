@@ -35,32 +35,22 @@ public class StopMonitoring {
 
     @Column(name = "vehicle_label")
     private String vehicleLabel;
-    @Column(name = "route_long_name")
-    private String routeLongName;
-    @Column(name = "origin_stop_id")
-    private String originStopId;
-    @Column(name = "origin_stop_name")
-    private String originStopName;
-    @Column(name = "destination_stop_id")
-    private String destinationStopId;
-    @Column(name = "destination_stop_name")
-    private String destinationStopName;
-    @Column(name = "congestion_level")
-    private String congestionLevel;
-    @Column(name = "position_longitude")
-    private double positionLongitude;
-    @Column(name = "position_latitude")
-    private double positionLatitude;
-    @Column(name = "position_bearing")
-    private double positionBearing;
-    @Column(name = "occupancy_status")
-    private String occupancyStatus;
+    @Column(name = "trip_start_date")
+    private String tripStartDate;
+    @Column(name = "trip_start_time")
+    private String tripStartTime;
+    @Column(name = "current_stop_sequence")
+    private String currentStopSequence;
+    @Column(name = "trip_schedule_relationship")
+    private String tripScheduleRelationship;
+    @Column(name = "stop_schedule_relationship")
+    private String stopScheduleRelationship;
+    @Column(name = "current_status")
+    private String currentStatus;
     @Column(name = "stop_name")
     private String stopName;
-    @Column(name = "stop_lon")
-    private String stopLon;
-    @Column(name = "stop_lat")
-    private String stopLat;
+    @Column(name = "occupancy_status")
+    private String occupancyStatus;
     @Column(name = "aimed_arrival_time", columnDefinition = "interval")
     private Duration aimedArrivalTime;
     @Column(name = "expected_arrival_time")
@@ -73,12 +63,28 @@ public class StopMonitoring {
     private long expectedDepartureTime;
     @Column(name = "departure_delay")
     private int departureDelay;
-    @Column(name = "trip_start_date")
-    private String tripStartDate;
-    @Column(name = "current_status")
-    private String currentStatus;
-    @Column(name = "last_arrival_time", columnDefinition = "interval")
-    private Duration lastArrivalTime;
+    @Column(name = "origin_stop_id")
+    private String originStopId;
+    @Column(name = "origin_stop_name")
+    private String originStopName;
+    @Column(name = "destination_stop_id")
+    private String destinationStopId;
+    @Column(name = "destination_stop_name")
+    private String destinationStopName;
+    @Column(name = "route_long_name")
+    private String routeLongName;
+    @Column(name = "congestion_level")
+    private String congestionLevel;
+    @Column(name = "position_longitude")
+    private double positionLongitude;
+    @Column(name = "position_latitude")
+    private double positionLatitude;
+    @Column(name = "position_bearing")
+    private double positionBearing;
+    @Column(name = "stop_lon")
+    private String stopLon;
+    @Column(name = "stop_lat")
+    private String stopLat;
     @Column(name = "\"timestamp\"")
     private long timestamp;
 }

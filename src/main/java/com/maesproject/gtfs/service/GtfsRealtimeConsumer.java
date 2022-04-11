@@ -30,8 +30,8 @@ public class GtfsRealtimeConsumer {
                 feed = FeedMessage.parseFrom(url.openStream());
                 if (feed.getEntityList().isEmpty()) return;
             } catch (IOException e) {
-                Logger.error("Error while parsing GTFS data from " + feedUrl);
-                Logger.error(e.getMessage());
+//                Logger.error("Error while parsing GTFS data from " + feedUrl);
+//                Logger.error(e.getMessage());
                 return;
             }
 

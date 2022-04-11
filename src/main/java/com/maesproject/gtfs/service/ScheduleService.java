@@ -7,7 +7,6 @@ import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
-@Order(3)
 public class ScheduleService implements GlobalVariable {
     @Autowired
     private GtfsRealtimeConsumer gtfsRealtimeConsumer;

@@ -14,7 +14,7 @@ public class TripUpdateEntity {
     @SequenceGenerator(name = "trip_updates_id_seq", sequenceName = "trip_updates_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trip_updates_id_seq")
     @Column(name = "id")
-    private int id;
+    private long id;
     @Column(name = "trip_id")
     private String tripId;
     @Column(name = "route_id")

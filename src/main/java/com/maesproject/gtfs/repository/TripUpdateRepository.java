@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface TripUpdateRepository extends JpaRepository<TripUpdateEntity, Integer> {
+public interface TripUpdateRepository extends JpaRepository<TripUpdateEntity, Long> {
 
     List<TripUpdateEntity> findByTripId(String tripId);
 

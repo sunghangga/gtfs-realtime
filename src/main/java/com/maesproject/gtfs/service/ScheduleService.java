@@ -38,18 +38,18 @@ public class ScheduleService implements GlobalVariable {
     @Value("${timezone}")
     private String timeZone;
 
-    private long timestampTripUpdate = 0;
-    private long timestampVehiclePosition = 0;
+    private long timestampTrip = 0;
+    private long timestampVehicle = 0;
     private long timestampAlert = 0;
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeTripUpdate() {
-        timestampTripUpdate = gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE, timestampTripUpdate);
+        timestampTrip = gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE, timestampTrip);
     }
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeVehiclePosition() {
-        timestampVehiclePosition = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehiclePosition);
+        timestampVehicle = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehicle);
     }
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")

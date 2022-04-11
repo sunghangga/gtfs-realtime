@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface VehiclePositionRepository extends JpaRepository<VehiclePositionEntity, Integer> {
+public interface VehiclePositionRepository extends JpaRepository<VehiclePositionEntity, Long> {
 
     List<VehiclePositionEntity> findByVehicleLabel(String vehicleLabel);
 

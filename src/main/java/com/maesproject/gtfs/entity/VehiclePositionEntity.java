@@ -14,7 +14,7 @@ public class VehiclePositionEntity {
     @SequenceGenerator(name = "vehicle_positions_id_seq", sequenceName = "vehicle_positions_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "vehicle_positions_id_seq")
     @Column(name = "id")
-    private int id;
+    private long id;
     @Column(name = "trip_id")
     private String tripId;
     @Column(name = "route_id")

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface AlertRepository extends JpaRepository<AlertEntity, Integer> {
+public interface AlertRepository extends JpaRepository<AlertEntity, Long> {
 
     List<AlertEntity> findByEntityId(String entityId);
 

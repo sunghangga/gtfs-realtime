@@ -14,7 +14,7 @@ public class AlertEntity {
     @SequenceGenerator(name = "alerts_id_seq", sequenceName = "alerts_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "alerts_id_seq")
     @Column(name = "id")
-    private int id;
+    private long id;
     @Column(name = "start")
     private long start;
     @Column(name = "\"end\"")

@@ -72,7 +72,7 @@ public class InitializeManager implements GlobalVariable {
     public void saveTripUpdate(FeedMessage feed) {
         LocalDateTime start = LocalDateTime.now();
         List<StopTimeUpdateEntity> stopTimeUpdateEntities = new ArrayList<>();
-        List<Integer> tripUpdateIdList = new ArrayList<>();
+        List<Long> tripUpdateIdList = new ArrayList<>();
         int tripUpdateSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {
@@ -209,7 +209,7 @@ public class InitializeManager implements GlobalVariable {
     public void saveVehiclePosition(FeedMessage feed) {
         LocalDateTime start = LocalDateTime.now();
         List<VehiclePositionEntity> vehiclePositionEntities = new ArrayList<>();
-        List<Integer> vehiclePositionIdList = new ArrayList<>();
+        List<Long> vehiclePositionIdList = new ArrayList<>();
 
         for (FeedEntity entity : feed.getEntityList()) {
             if (!agencyFilter.isEmpty()) {
@@ -327,7 +327,7 @@ public class InitializeManager implements GlobalVariable {
     public void saveAlert(FeedMessage feed) {
         LocalDateTime start = LocalDateTime.now();
         List<EntitySelectorEntity> selectorEntities = new ArrayList<>();
-        List<Integer> alertIdList = new ArrayList<>();
+        List<Long> alertIdList = new ArrayList<>();
         int alertSaved = 0;
 
         for (FeedEntity entity : feed.getEntityList()) {

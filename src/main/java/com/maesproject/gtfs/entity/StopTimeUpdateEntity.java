@@ -34,5 +34,5 @@ public class StopTimeUpdateEntity {
     @Column(name = "schedule_relationship")
     private String scheduleRelationship;
     @Column(name = "trip_update_id")
-    private int tripUpdateId;
+    private long tripUpdateId;
 }

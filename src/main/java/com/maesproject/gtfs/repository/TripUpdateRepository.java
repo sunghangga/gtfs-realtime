@@ -14,7 +14,7 @@ public interface TripUpdateRepository extends JpaRepository<TripUpdateEntity, Lo
 
     TripUpdateEntity findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(String tripId, String routeId, int directionId, String tripStartDate, String tripStartTime);
 
-    int deleteByIdIn(List<Integer> tripUpdateIdList);
+    int deleteByIdIn(List<Long> tripUpdateIdList);
 
     @Transactional
     int deleteByTimestampLessThan(long timestampSeconds);

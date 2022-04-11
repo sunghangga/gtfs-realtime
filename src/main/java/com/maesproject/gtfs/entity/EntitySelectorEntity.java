@@ -36,5 +36,5 @@ public class EntitySelectorEntity {
     @Column(name = "schedule_relationship")
     private String scheduleRelationship;
     @Column(name = "alert_id")
-    private int alertId;
+    private long alertId;
 }

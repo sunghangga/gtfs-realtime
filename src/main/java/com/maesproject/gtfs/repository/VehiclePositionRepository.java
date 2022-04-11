@@ -16,7 +16,7 @@ public interface VehiclePositionRepository extends JpaRepository<VehiclePosition
 
     VehiclePositionEntity findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTimeAndVehicleLabel(String tripId, String routeId, int directionId, String tripStartDate, String tripStartTime, String vehicleLabel);
 
-    int deleteByIdIn(List<Integer> vehiclePositionIdList);
+    int deleteByIdIn(List<Long> vehiclePositionIdList);
 
     @Transactional
     int deleteByTimestampLessThan(long timestampSeconds);

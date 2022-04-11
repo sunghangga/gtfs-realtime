@@ -69,12 +69,12 @@ hostname:port/api/gtfs/stopmonitoring?agency_id=xxx&format=json
 ```
 
 The API will return stop-monitoring data from 'xxx' agency (user/operator) in a json format.
-Other filter also available for the url such as _stop_id_ and _vehicle_id_.
+Other filter also available for the url such as **_stop_id_** and **_vehicle_id_**.
 
 > In order to get the data from the API, make sure GTFS static data already imported to the database.
 > Otherwise, no data will be available for response since GTFS realtime data need to be joined with the GTFS static data in the query.
 > Import the GTFS static data using [GTFS-Static app](https://bitbucket.org/sunghangga/gtfs-static-maestronic/src/master/).
-> There is also [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatic import the latest static data periodically, so we don't have to import the GTFS static data manually.
+> There is also a [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatic import the latest static data periodically, so we don't have to import the GTFS static data manually.
 
 ## Docker
 

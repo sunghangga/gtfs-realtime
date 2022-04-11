@@ -1,9 +1,9 @@
 # GTFS-Realtime
 
-GTFS-Realtime app will collect GTFS realtime data (trip updates, vehicle positions and alerts) from available feed url and then save it to the database.
+GTFS-Realtime app will collect GTFS realtime data (trip updates, vehicle positions and alerts) from available feed url and save them to the database.
 The data will be served through an API by accessing url endpoint.
 The API will return stop-monitoring data in a json or xml format.
-This app also provide feature for deleting expired realtime data automatically to prevent old realtime data from piling up.
+This app also provide feature for deleting expired realtime data automatically in a given range day to prevent old realtime data from piling up.
 
 ## Installation
 
@@ -23,12 +23,12 @@ spring.datasource.username=username
 spring.datasource.password=password
 ```
 
-#### 5. Set up the settings for GTFS-realtime feed
+#### 5. Set up the settings for GTFS realtime feeder
 The settings are provided in the **_application.properties_** file. 
 There are few feed url available for testing. 
 Choose one only by commenting other settings.
 
-For example:
+For instance:
 
 ```
 # USER CONFIG
@@ -51,11 +51,7 @@ This setting will allow the app to collect data from http://gtfs.ovapi.nl
 
 ## Test run
 
-#### 1. Build the app into a jar file using maven command:
-
-```
-mvn clean package
-```
+#### 1. Build the app into a jar file using maven command `mvn clean package`
 
 #### 2. Execute the jar file using command:
 
@@ -73,12 +69,12 @@ hostname:port/api/gtfs/stopmonitoring?agency_id=xxx&format=json
 ```
 
 The API will return stop-monitoring data from 'xxx' agency (user/operator) in a json format.
-Other filter also available such as 'stop_id' and 'vehicle_id'.
+Other filter also available for the url such as _stop_id_ and _vehicle_id_.
 
 > In order to get the data from the API, make sure GTFS static data already imported to the database.
 > Otherwise, no data will be available for response since GTFS realtime data need to be joined with the GTFS static data in the query.
-> Import the GTFS static data using GTFS-Static app.
-> There is also GTFS-Auto-Import app available for importing the latest static data automatically.
+> Import the GTFS static data using [GTFS-Static app](https://bitbucket.org/sunghangga/gtfs-static-maestronic/src/master/).
+> There is also [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatic import the latest static data periodically, so we don't have to import the GTFS static data manually.
 
 ## Docker
 
@@ -115,11 +111,7 @@ volumes:
     - target_dir/sql_file.sql:/docker-entrypoint-initdb.d/sql_file.sql
 ```
 
-#### 3. Run docker by executing command:
-
-```
-docker-compose up --build / docker-compose up --build -d
-```
+#### 3. Run docker by executing command `docker-compose up --build` or `docker-compose up --build -d`
 
 The app will run after the compose process is complete.
 

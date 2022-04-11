@@ -19,7 +19,7 @@ public class GtfsRealtimeConsumer {
     @Value("${consume.realtime.seconds.interval}")
     private int consumeInterval;
 
-    public void consume(String feedUrl, String type) {
+    public long consume(String feedUrl, String type, long lastTimestamp) {
         try {
             String[] gtfsVersion = {"1.0", "2.0"};
             List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
@@ -28,11 +28,17 @@ public class GtfsRealtimeConsumer {
             try {
                 URL url = new URL(feedUrl);
                 feed = FeedMessage.parseFrom(url.openStream());
-                if (feed.getEntityList().isEmpty()) return;
+                if (feed.getEntityList().isEmpty()) return lastTimestamp;
             } catch (IOException e) {
 //                Logger.error("Error while parsing GTFS data from " + feedUrl);
 //                Logger.error(e.getMessage());
-                return;
+                return lastTimestamp;
+            }
+
+            // check timestamp
+            if (feed.getHeader().hasTimestamp()) {
+                if (feed.getHeader().getTimestamp() == lastTimestamp) return lastTimestamp;
+                else lastTimestamp = feed.getHeader().getTimestamp();
             }
 
             // check header detail
@@ -50,6 +56,7 @@ public class GtfsRealtimeConsumer {
             Logger.error("Error consuming GTFS feed from " + feedUrl);
             Logger.error(e.getMessage());
         }
+        return lastTimestamp;
     }
 
     public void consumeFeed(String feedUrl) {

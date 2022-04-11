@@ -38,19 +38,23 @@ public class ScheduleService implements GlobalVariable {
     @Value("${timezone}")
     private String timeZone;
 
+    private long timestampTripUpdate = 0;
+    private long timestampVehiclePosition = 0;
+    private long timestampAlert = 0;
+
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeTripUpdate() {
-        gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE);
+        timestampTripUpdate = gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE, timestampTripUpdate);
     }
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeVehiclePosition() {
-        gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION);
+        timestampVehiclePosition = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehiclePosition);
     }
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeAlert() {
-        gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT);
+        timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);
     }
 
     @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")

@@ -3,7 +3,7 @@
 GTFS-Realtime app will collect GTFS realtime data (trip updates, vehicle positions and alerts) from available feed url and save them to the database.
 The data will be served through an API by accessing url endpoint.
 The API will return stop-monitoring data in a json or xml format.
-This app also provide feature for deleting expired realtime data automatically in a given range day to prevent old realtime data from piling up.
+This app also provide feature for deleting old realtime data automatically in a given start of day to prevent old data from piling up.
 
 ## Installation
 
@@ -73,8 +73,9 @@ Other filter also available for the url such as **_stop_id_** and **_vehicle_id_
 
 > In order to get the data from the API, make sure GTFS static data already imported to the database.
 > Otherwise, no data will be available for response since GTFS realtime data need to be joined with the GTFS static data in the query.
-> Import the GTFS static data using [GTFS-Static app](https://bitbucket.org/sunghangga/gtfs-static-maestronic/src/master/).
-> There is also a [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatic import the latest static data periodically, so we don't have to import the GTFS static data manually.
+> GTFS static data can be imported using [GTFS-Static app](https://bitbucket.org/sunghangga/gtfs-static-maestronic/src/master/).
+> There is also a [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatically importing the latest static data periodically.
+> With all three app running together, GTFS data will be up-to-date.
 
 ## Docker
 

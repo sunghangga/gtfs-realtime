@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ThreadService {
-    @Autowired
-    private GtfsRealtimeConsumer gtfsRealtimeConsumer;
+//    @Autowired
+//    private GtfsRealtimeConsumer gtfsRealtimeConsumer;
 
 //    @Async
 //    public void consumeFeed(String feedUrl) {

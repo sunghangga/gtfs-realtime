@@ -21,9 +21,6 @@ public class GtfsRealtimeConsumer {
 
     public long consume(String feedUrl, String type, long lastTimestamp) {
         try {
-            String[] gtfsVersion = {"1.0", "2.0"};
-            List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
-
             FeedMessage feed;
             try {
                 URL url = new URL(feedUrl);
@@ -45,6 +42,9 @@ public class GtfsRealtimeConsumer {
             if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
                 Logger.warn("Feed " + feedUrl + " 'incrementality' is " + feed.getHeader().getIncrementality());
             }
+
+            String[] gtfsVersion = {"1.0", "2.0"};
+            List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
             if (!gtfsVersionList.contains(feed.getHeader().getGtfsRealtimeVersion())) {
                 Logger.warn("Feed " + feedUrl + " is using GTFS-Realtime version " + feed.getHeader().getGtfsRealtimeVersion());
             }

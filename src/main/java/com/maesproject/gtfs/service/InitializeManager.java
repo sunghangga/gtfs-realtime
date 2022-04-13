@@ -119,8 +119,8 @@ public class InitializeManager implements GlobalVariable {
                 if (tripUpdate.hasTimestamp()) {
                     tripUpdateEntity.setTimestamp(tripUpdate.getTimestamp());
                 } else {
-                    LocalDateTime currentTimeNl = LocalDateTime.now(ZoneId.of(timeZone));
-                    long seconds = currentTimeNl.atZone(ZoneId.of(timeZone)).toEpochSecond();
+                    LocalDateTime currentTime = LocalDateTime.now(ZoneId.of(timeZone));
+                    long seconds = currentTime.atZone(ZoneId.of(timeZone)).toEpochSecond();
                     tripUpdateEntity.setTimestamp(seconds);
                 }
                 if (tripUpdate.hasDelay()) {

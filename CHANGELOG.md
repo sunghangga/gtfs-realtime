@@ -3,16 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## Version [1.3.1] - 2022-04-13
+### Version [1.3.1] - 2022-04-13
 
-### Added:
+#### Added:
 - Add CHANGELOG file.
 - Add data to the Stop Monitoring API response for **CANCELED** trip and **SKIPPED** stop.
 
-### Changed:
+#### Changed:
 - Change id type from integer to long for all GTFS realtime entity to increase maximum value of primary key.
 
-### Fixed:
+#### Fixed:
 - Fix bug of duplicate trip data when inserting realtime data by removing @Async annotation to scheduler method and increase pool size value for task scheduler to make all scheduler run at the same time..
 - Fix vehicle label data in Stop Monitoring API for null value.
 
@@ -20,53 +20,53 @@ All notable changes to this project will be documented in this file.
 ---
 
 
-## Version [1.3.0] - 2022-03-31
+### Version [1.3.0] - 2022-03-31
 
-### Added:
+#### Added:
 - Add README file.
 - Add _arrival delay_ and _departure delay_ to the Stop Monitoring API response.
 
-### Changed:
+#### Changed:
 - Change hour format in Stop Monitoring API from 12-hour to 24-hour format.
 - Modify code and query to support GTFS Realtime data from VIA and Translink.
 - Change code for consuming realtime data from using dedicated thread for each url to using scheduler.
 
-### Removed:
+#### Removed:
 - Remove timezone filter in Stop Monitoring query.
 
 
 ---
 
 
-## Version [1.2.0] - 2022-02-28
+### Version [1.2.0] - 2022-02-28
 
-### Changed:
+#### Changed:
 - Change the number of parameter for deleting data when updating realtime data.
 
-### Fixed:
+#### Fixed:
 - Optimize code for out of memory and java heap size issue.
 
 
 ---
 
 
-## Version [1.1.0] - 2022-01-31
+### Version [1.1.0] - 2022-01-31
 
-### Added:
+#### Added:
 - Add docker installation.
 - Add dummy data for Stop Monitoring API.
 - Add feature for deleting old realtime data in a given time range.
 
-### Changed:
+#### Changed:
 - Change logic while inserting realtime data by deleting previous realtime data using trip_id parameter for trip-updates data, vehicle_label parameter for vehicle-positions data and entity_id for alerts data, to prevent duplicate realtime data.
 
-### Fixed:
+#### Fixed:
 - Fix bug of realtime data stop consuming by changing code logic to prevent consumer thread to die when error occurred.
 
 
 ---
 
 
-## Version [1.0.0] - 2021-12-31
+### Version [1.0.0] - 2021-12-31
 
 Initial release.

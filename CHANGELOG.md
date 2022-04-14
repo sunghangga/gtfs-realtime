@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 
 #### Added:
 - Add CHANGELOG file.
-- Add data to the Stop Monitoring API response for **CANCELED** trip and **SKIPPED** stop.
+- Add **CANCELED** trip and **SKIPPED** stop in the Stop Monitoring API response.
 
 #### Changed:
 - Change id type from integer to long for all GTFS realtime entity to increase maximum value of primary key.
@@ -58,7 +58,7 @@ All notable changes to this project will be documented in this file.
 - Add feature for deleting old realtime data in a given time range.
 
 #### Changed:
-- Change logic while inserting realtime data by deleting previous realtime data using trip_id parameter for trip-updates data, vehicle_label parameter for vehicle-positions data and entity_id for alerts data, to prevent duplicate realtime data.
+- Change logic while inserting realtime data by deleting previous realtime data to prevent duplicate realtime data.
 
 #### Fixed:
 - Fix bug of realtime data stop consuming by changing code logic to prevent consumer thread to die when error occurred.

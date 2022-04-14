@@ -41,7 +41,7 @@ All notable changes to this project will be documented in this file.
 ### Version [1.2.0] - 2022-02-28
 
 #### Changed:
-- Change the number of parameter for deleting data when updating realtime data.
+- Change the number of parameter for deleting data in the database when updating realtime data.
 
 #### Fixed:
 - Optimize code for out of memory and java heap size issue.
@@ -55,13 +55,13 @@ All notable changes to this project will be documented in this file.
 #### Added:
 - Add docker installation.
 - Add dummy data for Stop Monitoring API.
-- Add feature for deleting old realtime data in a given time range.
+- Add feature for deleting old realtime data periodically in a given time range.
 
 #### Changed:
-- Change logic while inserting realtime data by deleting previous realtime data to prevent duplicate realtime data.
+- Change logic by deleting previous realtime data while inserting the latest realtime data to prevent duplicate realtime data in the database.
 
 #### Fixed:
-- Fix bug of realtime data stop consuming by changing code logic to prevent consumer thread to die when error occurred.
+- Realtime data stop consuming when thread is die of error. Fixed by changing code logic to prevent consumer thread to die when error occurred.
 
 
 ---

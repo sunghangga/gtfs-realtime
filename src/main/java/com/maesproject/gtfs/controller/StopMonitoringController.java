@@ -34,14 +34,15 @@ public class StopMonitoringController {
     public ResponseEntity<String> getStopMonitoring(@RequestParam(required = true) String agency_id,
                                                     @RequestParam(required = false) String stop_id,
                                                     @RequestParam(required = false) String vehicle_id,
-                                                    @RequestParam(required = false) String format) {
+                                                    @RequestParam(required = false) String format,
+                                                    @RequestParam(required = false) Long approx) {
 
         HttpHeaders headers = new HttpHeaders();
         if (format != null && format.equalsIgnoreCase("json")) {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             headers.setContentType(MediaType.APPLICATION_JSON);
             try {
-                String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id, vehicle_id);
+                String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id, vehicle_id, approx);
                 return new ResponseEntity<>(response, headers, HttpStatus.OK);
             } catch (Exception e) {
                 Logger.error(e.getMessage());
@@ -51,7 +52,7 @@ public class StopMonitoringController {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
             try {
-                String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id, vehicle_id);
+                String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id, vehicle_id, approx);
                 return new ResponseEntity<>(response, headers, HttpStatus.OK);
             } catch (Exception e) {
                 Logger.error(e.getMessage());

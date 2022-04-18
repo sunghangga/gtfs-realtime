@@ -78,8 +78,9 @@ public class StopMonitoringService implements GlobalVariable {
         return objectMapper;
     }
 
-    public String getStopMonitoringJson(String agencyId, String stopId, String vehicleLabel) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel);
+    public String getStopMonitoringJson(String agencyId, String stopId, String vehicleLabel, Long approx) {
+        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
         if (resultList.isEmpty()) {
             return emptyDataMessageJson();
         } else {
@@ -87,8 +88,9 @@ public class StopMonitoringService implements GlobalVariable {
         }
     }
 
-    public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel) throws IOException {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel);
+    public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel, Long approx) throws IOException {
+        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
         if (resultList.isEmpty()) {
             return convertJsonToXml(emptyDataMessageJson(), "response");
         } else {
@@ -301,8 +303,9 @@ public class StopMonitoringService implements GlobalVariable {
         return xmlMapper.writer().withRootName(rootName).writeValueAsString(jsonNode);
     }
 
-    public void createDummyStopMonitoring(String agencyId, String stopId, String vehicleLabel) {
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel);
+    public void createDummyStopMonitoring(String agencyId, String stopId, String vehicleLabel, Long approx) {
+        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
 
         StringBuilder sb = new StringBuilder();
         sb.append("timestamp").append(',');

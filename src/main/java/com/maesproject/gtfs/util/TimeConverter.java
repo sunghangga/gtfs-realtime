@@ -33,4 +33,8 @@ public class TimeConverter {
         ZonedDateTime zonedDateTime = ZonedDateTime.parse(ZonedDateTime.ofInstant(instant, ZoneId.of(timeZone)).format(formatter));
         return zonedDateTime.toString();
     }
+
+    public long currentTimeToUnix(String timeZone) {
+        return LocalDateTime.now(ZoneId.of(timeZone)).atZone(ZoneId.of(timeZone)).toEpochSecond();
+    }
 }

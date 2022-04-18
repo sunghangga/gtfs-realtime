@@ -79,7 +79,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String getStopMonitoringJson(String agencyId, String stopId, String vehicleLabel, Long approx) {
-        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
         List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
         if (resultList.isEmpty()) {
             return emptyDataMessageJson();
@@ -89,7 +89,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel, Long approx) throws IOException {
-        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
         List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
         if (resultList.isEmpty()) {
             return convertJsonToXml(emptyDataMessageJson(), "response");
@@ -304,7 +304,7 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public void createDummyStopMonitoring(String agencyId, String stopId, String vehicleLabel, Long approx) {
-        long timestamp = approx == null ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+        long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
         List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
 
         StringBuilder sb = new StringBuilder();

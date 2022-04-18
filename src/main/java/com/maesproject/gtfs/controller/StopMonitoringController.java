@@ -35,7 +35,7 @@ public class StopMonitoringController {
                                                     @RequestParam(required = false) String stop_id,
                                                     @RequestParam(required = false) String vehicle_id,
                                                     @RequestParam(required = false) String format,
-                                                    @RequestParam(required = false) Long approx) {
+                                                    @RequestParam(required = false, defaultValue = "0") Long approx) {
 
         HttpHeaders headers = new HttpHeaders();
         if (format != null && format.equalsIgnoreCase("json")) {

@@ -5,9 +5,15 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.2] - 2022-04-18
 
-#### Changed
+#### Added:
+- Add new function for collecting vehicle id
 
+#### Changed:
 - Add parameter "approx" for API SM
+
+
+---
+
 
 ### Version [1.3.1] - 2022-04-13
 

@@ -24,6 +24,8 @@ public class ScheduleService implements GlobalVariable {
     private VehiclePositionRepository vehiclePositionRepository;
     @Autowired
     private AlertRepository alertRepository;
+    @Autowired
+    private VehicleService vehicleService;
 
     @Value("${url.trip-update}")
     private String urlTripUpdate;
@@ -41,6 +43,7 @@ public class ScheduleService implements GlobalVariable {
     private long timestampTrip = 0;
     private long timestampVehicle = 0;
     private long timestampAlert = 0;
+    private long timestampBusList = 0;
 
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeTripUpdate() {
@@ -55,6 +58,11 @@ public class ScheduleService implements GlobalVariable {
     @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
     public void consumeAlert() {
         timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);
+    }
+
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    public void consumeVehicleId() {
+        timestampBusList = vehicleService.collectVehicleId(urlVehiclePosition, timestampBusList);
     }
 
     @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")

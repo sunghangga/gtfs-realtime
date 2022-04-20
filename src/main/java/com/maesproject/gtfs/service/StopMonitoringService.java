@@ -13,7 +13,6 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.maesproject.gtfs.entity.StopMonitoring;
 import com.maesproject.gtfs.repository.StopMonitoringRepository;
-import com.maesproject.gtfs.stopmonitor.*;
 import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import com.maesproject.gtfs.util.TimeConverter;
@@ -27,9 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 

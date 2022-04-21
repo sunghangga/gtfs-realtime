@@ -32,21 +32,19 @@ public class VehicleService {
                 if (feed.getHeader().getTimestamp() == lastTimestamp) return lastTimestamp;
                 else lastTimestamp = feed.getHeader().getTimestamp();
             }
-
             List<Vehicle> vehicleList = new ArrayList<>();
             for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
                 if (entity.hasVehicle()) {
                     GtfsRealtime.VehiclePosition vehiclePosition = entity.getVehicle();
                     if (vehiclePosition.hasVehicle()) {
-                        if (vehiclePosition.getVehicle().hasId()) {
-                            vehicleList.add(new Vehicle(vehiclePosition.getVehicle().getId()));
-                        } else if (vehiclePosition.getVehicle().hasLabel()) {
+                        if (vehiclePosition.getVehicle().hasLabel()) {
                             vehicleList.add(new Vehicle(vehiclePosition.getVehicle().getLabel()));
+                        } else if (vehiclePosition.getVehicle().hasId()) {
+                            vehicleList.add(new Vehicle(vehiclePosition.getVehicle().getId()));
                         }
                     }
                 }
             }
-
             vehicleRepository.saveAll(vehicleList);
 
         } catch (Exception e) {

@@ -40,23 +40,40 @@ public class ScheduleService implements GlobalVariable {
     @Value("${timezone}")
     private String timeZone;
 
+    private final long initialDelay = 100;
     private long timestampTrip = 0;
     private long timestampVehicle = 0;
     private long timestampAlert = 0;
     private long timestampBusList = 0;
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    private boolean printUrlInfoTripUpdate = true;
+    private boolean printUrlInfoVehiclePosition = true;
+    private boolean printUrlInfoAlert = true;
+
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
     public void consumeTripUpdate() {
+        if (printUrlInfoTripUpdate) {
+            Logger.info("Consuming data from " + urlTripUpdate);
+            printUrlInfoTripUpdate = false;
+        }
         timestampTrip = gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE, timestampTrip);
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
     public void consumeVehiclePosition() {
+        if (printUrlInfoVehiclePosition) {
+            Logger.info("Consuming data from " + urlTripUpdate);
+            printUrlInfoVehiclePosition = false;
+        }
         timestampVehicle = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehicle);
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
     public void consumeAlert() {
+        if (printUrlInfoAlert) {
+            Logger.info("Consuming data from " + urlTripUpdate);
+            printUrlInfoAlert = false;
+        }
         timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);
     }
 

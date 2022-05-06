@@ -1,10 +1,23 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+### Version [1.3.4] - 2022-05-06
+
+#### Change:
+- Disable feature for collecting vehicle id. Vehicle id data will be given by the user.
+- Change back spring.task.scheduling.pool.size value to 4
+
+
+---
+
+
 ### Version [1.3.3] - 2022-04-20
 
 #### Added:
-- Add new function for collecting vehicle id
+- Add new scheduled function for collecting vehicle id
+
+#### Change:
+- Change spring.task.scheduling.pool.size value to 5 for additional schedule
 
 
 ---

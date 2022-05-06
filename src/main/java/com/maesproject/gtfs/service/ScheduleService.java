@@ -60,10 +60,10 @@ public class ScheduleService implements GlobalVariable {
         timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
-    public void consumeVehicleId() {
-        timestampBusList = vehicleService.collectVehicleId(urlVehiclePosition, timestampBusList);
-    }
+//    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+//    public void consumeVehicleId() {
+//        timestampBusList = vehicleService.collectVehicleId(urlVehiclePosition, timestampBusList);
+//    }
 
     @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")
     public void deleteExpiredRealtimeData() {

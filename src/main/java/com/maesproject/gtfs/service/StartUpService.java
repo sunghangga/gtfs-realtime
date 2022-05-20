@@ -28,13 +28,11 @@ public class StartUpService {
         System.out.println("\nGTFS-Realtime-Consumer is running...\n");
     }
 
-//    @EventListener(ApplicationReadyEvent.class)
-//    @Order(2)
-//    public void printFeedSources() {
-//        Logger.info("Consuming data from " + urlTripUpdate);
-//        Logger.info("Consuming data from " + urlVehiclePosition);
-//        Logger.info("Consuming data from " + urlAlert);
-//    }
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(2)
+    public void deleteRealtimeFirstTime() {
+        scheduleService.deleteExpiredRealtimeData();
+    }
 
 //    @EventListener(ApplicationReadyEvent.class)
 //    @Order(3)

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 #### Added:
 - Add API for next-bus
+- Add API for bus-schedule
 
 
 ---

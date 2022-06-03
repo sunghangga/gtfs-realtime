@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+### Version [1.4.0] - 2022-06-03
+
+#### Added:
+- Add API for next-bus
+
+
+---
+
+
 ### Version [1.3.4] - 2022-05-06
 
 #### Change:

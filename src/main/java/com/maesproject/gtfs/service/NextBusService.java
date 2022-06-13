@@ -44,9 +44,9 @@ public class NextBusService {
             }
         }
 
-        List<DestinationTrip> destinationTripList = new ArrayList<>();
+        List<Destination.DestinationTrip> destinationTripList = new ArrayList<>();
         for (int i : directionList) {
-            DestinationTrip destinationTrip = new DestinationTrip();
+            Destination.DestinationTrip destinationTrip = new Destination.DestinationTrip();
             String headSign1 = "";
             String headSign2 = "";
             for (Tuple tuple : tripHeadSignList) {
@@ -74,9 +74,9 @@ public class NextBusService {
 
     public DestinationStop getStop(String routeShortName, int directionId) {
         List<Tuple> stopList = nextBusRepository.getStop(routeShortName, directionId);
-        List<StopCheck> stopCheckList = new ArrayList<>();
+        List<DestinationStop.StopCheck> stopCheckList = new ArrayList<>();
         for (Tuple tuple : stopList) {
-            stopCheckList.add(new StopCheck(
+            stopCheckList.add(new DestinationStop.StopCheck(
                     tuple.get("stop_code").toString(),
                     tuple.get("stop_name").toString().replace("@", "at")
             ));
@@ -94,17 +94,18 @@ public class NextBusService {
             }
         }
 
-        int oppositeDirection = (directionId == 0) ? 1 : 0;
-
         DestinationStop destinationStop = new DestinationStop();
         destinationStop.setRouteShortName(routeShortName);
         destinationStop.setCombinedTripHeadSign(headSign1 + " / " + headSign2);
-        destinationStop.setOppositeDirection(oppositeDirection);
+        destinationStop.setOppositeDirection((directionId == 0) ? 1 : 0);
         destinationStop.setStopChecks(stopCheckList);
         return destinationStop;
     }
 
-    public NextDeparture getNextDeparture(String routeShortName, String stopCode) {
+    public StopDeparture getNextDeparture(String routeShortName, String stopCode) {
+        // check if ongoing trip is from today's trip or from yesterday's trip
+        // by comparing time now to the latest departure time of the route and stop
+
         List<Tuple> lastDepartureList = nextBusRepository.getLastDeparture(routeShortName, stopCode);
         LocalTime lastDepartureTime = null;
         for (Tuple tuple : lastDepartureList) {
@@ -113,8 +114,10 @@ public class NextBusService {
 
         LocalDate tripStartDate;
         if (LocalTime.now(ZoneId.of(timeZone)).isAfter(lastDepartureTime)) {
+            // using today trip start date
             tripStartDate = LocalDate.now(ZoneId.of(timeZone));
         } else {
+            // using yesterday trip start date
             tripStartDate = LocalDate.now(ZoneId.of(timeZone)).minusDays(1);
         }
 
@@ -123,8 +126,13 @@ public class NextBusService {
         String arrayServiceId = getArrayServiceId(dateWithoutDash, dayOfWeek);
 
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByStop(routeShortName, stopCode);
-        List<DepartureTrip> departureTripList = new ArrayList<>();
+        List<StopDeparture.DepartureSchedule> departureScheduleList = new ArrayList<>();
+        String stopName = "";
+        int directionId = 9999;
         for (Tuple tuple : tripHeadSignList) {
+            if (stopName.isEmpty()) stopName = tuple.get("stop_name").toString().replace("@", "at");
+            if (directionId == 9999) directionId = Integer.parseInt(tuple.get("direction_id").toString());
+
             String tripHeadSign = tuple.get("trip_headsign").toString();
             List<Tuple> nextDepartureList = nextBusRepository.getNextDeparture(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateWithoutDash, timeZone);
 
@@ -145,16 +153,16 @@ public class NextBusService {
                 }
             }
 
-            departureTripList.add(new DepartureTrip(tripHeadSign, nextInfo));
+            departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, nextInfo));
         }
 
-        NextDeparture nextDeparture = new NextDeparture();
-        nextDeparture.setStopCode(stopCode);
-        nextDeparture.setStopName("");
-        nextDeparture.setRouteShortName(routeShortName);
-        nextDeparture.setDirectionId(0);
-        nextDeparture.setDepartureTrips(departureTripList);
-        return nextDeparture;
+        StopDeparture stopDeparture = new StopDeparture();
+        stopDeparture.setStopName(stopName);
+        stopDeparture.setStopCode(stopCode);
+        stopDeparture.setRouteShortName(routeShortName);
+        stopDeparture.setDirectionId(directionId);
+        stopDeparture.setDepartureSchedules(departureScheduleList);
+        return stopDeparture;
     }
 
     public String getArrayServiceId(String dateWithoutDash, String dayOfWeek) {

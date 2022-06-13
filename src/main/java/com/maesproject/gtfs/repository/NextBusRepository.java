@@ -60,7 +60,7 @@ public class NextBusRepository {
 
     public String queryGetStop(String routeShortName, int directionId) {
         return "select s.stop_code, s.stop_name\n" +
-                "from routes r \n" +
+                "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +
                 "join stop_times st on st.trip_id = t.trip_id\n" +
                 "join stops s on s.stop_id = st.stop_id\n" +
@@ -79,13 +79,13 @@ public class NextBusRepository {
 
     public String queryLastDeparture(String routeShortName, String stopCode) {
         return "select cast(max(st.departure_time) as time) departure_time\n" +
-                "from stop_times st \n" +
-                "join trips t on t.trip_id = st.trip_id \n" +
-                "join routes r on r.route_id = t.route_id \n" +
-                "join stops s on s.stop_id = st.stop_id \n" +
-                "where st.pickup_type <> '1' \n" +
-                "and st.drop_off_type <> '1' \n" +
-                "and r.route_short_name = '" + routeShortName + "' \n" +
+                "from stop_times st\n" +
+                "join trips t on t.trip_id = st.trip_id\n" +
+                "join routes r on r.route_id = t.route_id\n" +
+                "join stops s on s.stop_id = st.stop_id\n" +
+                "where st.pickup_type <> '1'\n" +
+                "and st.drop_off_type <> '1'\n" +
+                "and r.route_short_name = '" + routeShortName + "'\n" +
                 "and s.stop_code = '" + stopCode + "'";
     }
 
@@ -96,8 +96,8 @@ public class NextBusRepository {
     }
 
     public String queryServiceIdCalendar(String date, String day) {
-        return "select service_id from calendar \n" +
-                "where '" + date + "' between start_date and end_date \n" +
+        return "select service_id from calendar\n" +
+                "where '" + date + "' between start_date and end_date\n" +
                 "and " + day + " = '1'";
     }
 
@@ -108,8 +108,8 @@ public class NextBusRepository {
     }
 
     public String queryServiceIdCalendarDates(String date) {
-        return "select service_id from calendar_dates \n" +
-                "where date = '" + date + "' \n" +
+        return "select service_id from calendar_dates\n" +
+                "where date = '" + date + "'\n" +
                 "and exception_type <> '2'";
     }
 
@@ -120,7 +120,8 @@ public class NextBusRepository {
     }
 
     public String queryTripHeadSignByStop(String routeShortName, String stopCode) {
-        return "select distinct(t.trip_headsign)\n" +
+        return "select distinct(t.trip_headsign),\n" +
+                "s.stop_name, t.direction_id\n" +
                 "from trips t\n" +
                 "join routes r on r.route_id = t.route_id\n" +
                 "join stop_times st on st.trip_id = t.trip_id\n" +
@@ -148,27 +149,27 @@ public class NextBusRepository {
 
     public String queryNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String date, String day) {
         return "select cast(min(st.departure_time) as character varying) next_scheduled\n" +
-                "from stop_times st \n" +
-                "join trips t on t.trip_id = st.trip_id \n" +
-                "join routes r on r.route_id = t.route_id \n" +
-                "join stops s on s.stop_id = st.stop_id \n" +
-                "where st.pickup_type <> '1' \n" +
-                "and st.drop_off_type <> '1' \n" +
-                "and r.route_short_name = '" + routeShortName + "' \n" +
-                "and s.stop_code = '" + stopCode + "' \n" +
-                "and t.trip_headsign = '" + tripHeadSign + "' \n" +
-                "and ( \n" +
-                "\tt.service_id in ( \n" +
-                "\t\tselect service_id from calendar \n" +
-                "\t\twhere '" + date + "' between start_date and end_date \n" +
-                "\t\tand " + day + " = '1' \n" +
-                "\t) \n" +
-                "\tor \n" +
-                "\tt.service_id in ( \n" +
-                "\t\tselect service_id from calendar_dates \n" +
-                "\t\twhere date = '" + date + "' \n" +
-                "\t\tand exception_type <> '2' \n" +
-                "\t) \n" +
+                "from stop_times st\n" +
+                "join trips t on t.trip_id = st.trip_id\n" +
+                "join routes r on r.route_id = t.route_id\n" +
+                "join stops s on s.stop_id = st.stop_id\n" +
+                "where st.pickup_type <> '1'\n" +
+                "and st.drop_off_type <> '1'\n" +
+                "and r.route_short_name = '" + routeShortName + "'\n" +
+                "and s.stop_code = '" + stopCode + "'\n" +
+                "and t.trip_headsign = '" + tripHeadSign + "'\n" +
+                "and (\n" +
+                "\tt.service_id in (\n" +
+                "\t\tselect service_id from calendar\n" +
+                "\t\twhere '" + date + "' between start_date and end_date\n" +
+                "\t\tand " + day + " = '1'\n" +
+                "\t)\n" +
+                "\tor\n" +
+                "\tt.service_id in (\n" +
+                "\t\tselect service_id from calendar_dates\n" +
+                "\t\twhere date = '" + date + "'\n" +
+                "\t\tand exception_type <> '2'\n" +
+                "\t)\n" +
                 ")";
     }
 }

@@ -1,5 +1,6 @@
 package com.maesproject.gtfs.entity.nextbus;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,4 +13,11 @@ public class DestinationStop {
     private String combinedTripHeadSign;
     private int oppositeDirection;
     private List<StopCheck> stopChecks;
+
+    @Data
+    @AllArgsConstructor
+    public static class StopCheck {
+        private String stopCode;
+        private String stopName;
+    }
 }

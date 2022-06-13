@@ -38,6 +38,7 @@ public class NextBusController {
     @GetMapping(value = "/api/gtfs/nextbus/route/{route}/direction/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getStop(@PathVariable("route") String routeShortName,
                                           @PathVariable("direction") int directionId) {
+
         DestinationStop response = nextBusService.getStop(routeShortName, directionId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -45,6 +46,7 @@ public class NextBusController {
     @GetMapping(value = "/api/gtfs/nextbus/route/{route}/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getNextDeparture(@PathVariable("route") String routeShortName,
                                                    @PathVariable("stop") String stopCode) {
+
         NextDeparture response = nextBusService.getNextDeparture(routeShortName, stopCode);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -132,7 +132,7 @@ public class NextBusService {
             for (Tuple tupleDeparture : nextDepartureList) {
                 nextInfo += (nextInfo.isEmpty()) ? tupleDeparture.get("rounded_minute") : ", " + tupleDeparture.get("rounded_minute");
             }
-            nextInfo = nextInfo.replace(".0", "");
+            nextInfo = nextInfo.replace(".0", "") + " min";
 
             if (nextDepartureList.isEmpty()) {
                 LocalDate nextDay = LocalDate.now(ZoneId.of(timeZone)).plusDays(1);

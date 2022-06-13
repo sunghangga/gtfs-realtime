@@ -3,7 +3,6 @@ package com.maesproject.gtfs.service;
 import com.maesproject.gtfs.entity.busschedule.BusSchedule;
 import com.maesproject.gtfs.entity.busschedule.StopSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
-import com.maesproject.gtfs.repository.NextBusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,7 @@ public class BusScheduleService {
     @Autowired
     private BusScheduleRepository busScheduleRepository;
     @Autowired
-    private NextBusRepository nextBusRepository;
+    private NextBusService nextBusService;
 
     public BusSchedule getBusSchedule(String routeShortName, int directionId, String dateCheck, String startTime, String endTime) {
         LocalDate date = LocalDate.parse(dateCheck);
@@ -27,17 +26,7 @@ public class BusScheduleService {
         LocalTime end = LocalTime.parse(endTime);
         String dateWithoutDash = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String dayOfWeek = date.getDayOfWeek().name().toLowerCase();
-        String arrayServiceId = "";
-
-        List<Tuple> serviceIdCalendar = nextBusRepository.getServiceIdCalendar(dateWithoutDash, dayOfWeek);
-        for (Tuple tuple : serviceIdCalendar) {
-            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get(0) + "'" : arrayServiceId + ", '" + tuple.get(0) + "'";
-        }
-
-        List<Tuple> serviceIdCalendarDate = nextBusRepository.getServiceIdCalendarDates(dateWithoutDash);
-        for (Tuple tuple : serviceIdCalendarDate) {
-            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get(0) + "'" : arrayServiceId + ", '" + tuple.get(0) + "'";
-        }
+        String arrayServiceId = nextBusService.getArrayServiceId(dateWithoutDash, dayOfWeek);
 
         String startDateTime = date + " " + start;
         String endDateTime = date + " " + end;
@@ -51,13 +40,13 @@ public class BusScheduleService {
         List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
         for (Tuple tuple : stopList) {
             StopSchedule stopSchedule = new StopSchedule();
-            stopSchedule.setStopCode(tuple.get(1).toString());
-            stopSchedule.setStopName(tuple.get(2).toString());
-            String stopId = tuple.get(0).toString();
+            stopSchedule.setStopCode(tuple.get("stop_code").toString());
+            stopSchedule.setStopName(tuple.get("stop_name").toString());
+            String stopId = tuple.get("stop_id").toString();
             List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
             List<String> scheduleList = new ArrayList<>();
             for (Tuple arrivalTime : arrivalTimeList) {
-                scheduleList.add(arrivalTime.get(0).toString());
+                scheduleList.add(arrivalTime.get("format_12_hour").toString());
             }
             stopSchedule.setArrivalTimes(scheduleList);
             stopScheduleList.add(stopSchedule);

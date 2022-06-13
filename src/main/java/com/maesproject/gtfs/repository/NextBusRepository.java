@@ -78,7 +78,7 @@ public class NextBusRepository {
     }
 
     public String queryLastDeparture(String routeShortName, String stopCode) {
-        return "select cast(max(st.departure_time) as time) \n" +
+        return "select cast(max(st.departure_time) as time) departure_time\n" +
                 "from stop_times st \n" +
                 "join trips t on t.trip_id = st.trip_id \n" +
                 "join routes r on r.route_id = t.route_id \n" +
@@ -147,7 +147,7 @@ public class NextBusRepository {
     }
 
     public String queryNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String date, String day) {
-        return "select cast(min(st.departure_time) as character varying) \n" +
+        return "select cast(min(st.departure_time) as character varying) next_scheduled\n" +
                 "from stop_times st \n" +
                 "join trips t on t.trip_id = st.trip_id \n" +
                 "join routes r on r.route_id = t.route_id \n" +

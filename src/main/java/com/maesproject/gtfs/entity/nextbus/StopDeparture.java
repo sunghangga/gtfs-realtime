@@ -19,6 +19,7 @@ public class StopDeparture {
     @AllArgsConstructor
     public static class DepartureSchedule {
         private String tripHeadSign;
-        private String nextInfo;
+        private String departing;
+        private String nextSchedule;
     }
 }

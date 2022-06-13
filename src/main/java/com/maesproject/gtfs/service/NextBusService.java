@@ -136,24 +136,37 @@ public class NextBusService {
             String tripHeadSign = tuple.get("trip_headsign").toString();
             List<Tuple> nextDepartureList = nextBusRepository.getNextDeparture(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateWithoutDash, timeZone);
 
-            String nextInfo = "";
+            String departing = "";
+            String nextSchedule = "";
             for (Tuple tupleDeparture : nextDepartureList) {
-                nextInfo += (nextInfo.isEmpty()) ? tupleDeparture.get("rounded_minute") : ", " + tupleDeparture.get("rounded_minute");
+                if (departing.isEmpty()) {
+                    double depart = Double.parseDouble(tupleDeparture.get("rounded_minute").toString());
+                    if (depart > 2) {
+                        departing = tupleDeparture.get("rounded_minute").toString().replace(".0", "") + " Minutes";
+                    } else {
+                        departing = "Now";
+                    }
+                } else {
+                    nextSchedule += (nextSchedule.isEmpty()) ? tupleDeparture.get("rounded_minute") : ", " + tupleDeparture.get("rounded_minute");
+                }
             }
-            nextInfo = nextInfo.replace(".0", "") + " min";
+            if (!nextSchedule.isEmpty()) {
+                nextSchedule = nextSchedule.replace(".0", "") + " min";
+            }
 
-            if (nextDepartureList.isEmpty()) {
-                LocalDate nextDay = LocalDate.now(ZoneId.of(timeZone)).plusDays(1);
+            if (nextDepartureList.isEmpty() || nextSchedule.isEmpty()) {
+                int addDay = tripStartDate.compareTo(LocalDate.now(ZoneId.of(timeZone))) == 0 ? 0 : 1;
+                LocalDate nextDay = LocalDate.now(ZoneId.of(timeZone)).plusDays(addDay);
                 String date = nextDay.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 String day = nextDay.getDayOfWeek().name().toLowerCase();
                 List<Tuple> nextScheduledList = nextBusRepository.getNextScheduled(routeShortName, tripHeadSign, stopCode, date, day);
                 for (Tuple tupleScheduled : nextScheduledList) {
                     LocalTime nextScheduled = LocalTime.parse(tupleScheduled.get("next_scheduled").toString());
-                    nextInfo = "Scheduled at " + nextScheduled + " " + nextDay;
+                    nextSchedule = "Scheduled at " + nextScheduled + " " + nextDay;
                 }
             }
 
-            departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, nextInfo));
+            departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, departing, nextSchedule));
         }
 
         StopDeparture stopDeparture = new StopDeparture();

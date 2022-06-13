@@ -21,32 +21,34 @@ public class BusScheduleService {
     @Autowired
     private NextBusRepository nextBusRepository;
 
-    public BusSchedule getBusSchedule(String routeShortName, int directionId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
-
-        String dateCheck = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    public BusSchedule getBusSchedule(String routeShortName, int directionId, String dateCheck, String startTime, String endTime) {
+        LocalDate date = LocalDate.parse(dateCheck);
+        LocalTime start = LocalTime.parse(startTime);
+        LocalTime end = LocalTime.parse(endTime);
+        String dateWithoutDash = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String dayOfWeek = date.getDayOfWeek().name().toLowerCase();
         String arrayServiceId = "";
 
-        List<Tuple> serviceIdCalendar = nextBusRepository.getServiceIdCalendar(dateCheck, dayOfWeek);
+        List<Tuple> serviceIdCalendar = nextBusRepository.getServiceIdCalendar(dateWithoutDash, dayOfWeek);
         for (Tuple tuple : serviceIdCalendar) {
             arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get(0) + "'" : arrayServiceId + ", '" + tuple.get(0) + "'";
         }
 
-        List<Tuple> serviceIdCalendarDate = nextBusRepository.getServiceIdCalendarDates(dateCheck);
+        List<Tuple> serviceIdCalendarDate = nextBusRepository.getServiceIdCalendarDates(dateWithoutDash);
         for (Tuple tuple : serviceIdCalendarDate) {
             arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get(0) + "'" : arrayServiceId + ", '" + tuple.get(0) + "'";
         }
 
-        String startDateTime = date + " " + startTime.toString();
-        String endDateTime = date + " " + endTime.toString();
-        if (endTime.isBefore(startTime)) {
+        String startDateTime = date + " " + start;
+        String endDateTime = date + " " + end;
+        if (end.isBefore(start)) {
             LocalDate tomorrow = date.plusDays(1);
-            endDateTime = tomorrow + " " + endTime;
+            endDateTime = tomorrow + " " + end;
         }
 
         BusSchedule busSchedule = new BusSchedule();
         List<StopSchedule> stopScheduleList = new ArrayList<>();
+        List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
         for (Tuple tuple : stopList) {
             StopSchedule stopSchedule = new StopSchedule();
             stopSchedule.setStopCode(tuple.get(1).toString());

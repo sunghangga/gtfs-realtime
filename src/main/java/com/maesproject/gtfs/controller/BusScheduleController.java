@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 @CrossOrigin
 @RestController
 public class BusScheduleController {
@@ -23,14 +20,11 @@ public class BusScheduleController {
     @GetMapping(value = "/api/gtfs/busschedules", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@RequestParam String routeShortName,
                                                  @RequestParam int directionId,
-                                                 @RequestParam String date,
+                                                 @RequestParam String dateCheck,
                                                  @RequestParam String startTime,
                                                  @RequestParam String endTime) {
 
-        LocalDate localDate = LocalDate.parse(date);
-        LocalTime start = LocalTime.parse(startTime);
-        LocalTime end = LocalTime.parse(endTime);
-        BusSchedule response = busScheduleService.getBusSchedule(routeShortName, directionId, localDate, start, end);
+        BusSchedule response = busScheduleService.getBusSchedule(routeShortName, directionId, dateCheck, startTime, endTime);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

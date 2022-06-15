@@ -1,7 +1,6 @@
 package com.maesproject.gtfs.service;
 
 import com.maesproject.gtfs.entity.busschedule.BusSchedule;
-import com.maesproject.gtfs.entity.busschedule.StopSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,10 +35,10 @@ public class BusScheduleService {
         }
 
         BusSchedule busSchedule = new BusSchedule();
-        List<StopSchedule> stopScheduleList = new ArrayList<>();
+        List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
         List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
         for (Tuple tuple : stopList) {
-            StopSchedule stopSchedule = new StopSchedule();
+            BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
             stopSchedule.setStopCode(tuple.get("stop_code").toString());
             stopSchedule.setStopName(tuple.get("stop_name").toString());
             String stopId = tuple.get("stop_id").toString();

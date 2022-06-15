@@ -1,6 +1,8 @@
 package com.maesproject.gtfs.service;
 
-import com.maesproject.gtfs.entity.nextbus.*;
+import com.maesproject.gtfs.entity.nextbus.Destination;
+import com.maesproject.gtfs.entity.nextbus.DestinationStop;
+import com.maesproject.gtfs.entity.nextbus.StopDeparture;
 import com.maesproject.gtfs.repository.NextBusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,13 +106,13 @@ public class NextBusService {
 
     public StopDeparture getNextDeparture(String routeShortName, String stopCode) {
         // check if ongoing trip is from today's trip or from yesterday's trip
-        // by comparing time now to the latest departure time of the route and stop
-
+        // by comparing current time to the latest departure time of the route and stop
         List<Tuple> lastDepartureList = nextBusRepository.getLastDeparture(routeShortName, stopCode);
         LocalTime lastDepartureTime = null;
         for (Tuple tuple : lastDepartureList) {
             lastDepartureTime = LocalTime.parse(tuple.get("departure_time").toString());
         }
+        if (lastDepartureTime == null) lastDepartureTime = LocalTime.now();
 
         LocalDate tripStartDate;
         if (LocalTime.now(ZoneId.of(timeZone)).isAfter(lastDepartureTime)) {
@@ -125,45 +127,37 @@ public class NextBusService {
         String dayOfWeek = tripStartDate.getDayOfWeek().name().toLowerCase();
         String arrayServiceId = getArrayServiceId(dateWithoutDash, dayOfWeek);
 
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByStop(routeShortName, stopCode);
-        List<StopDeparture.DepartureSchedule> departureScheduleList = new ArrayList<>();
         String stopName = "";
         int directionId = 9999;
+        List<StopDeparture.DepartureSchedule> departureScheduleList = new ArrayList<>();
+
+        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByStop(routeShortName, stopCode);
         for (Tuple tuple : tripHeadSignList) {
             if (stopName.isEmpty()) stopName = tuple.get("stop_name").toString().replace("@", "at");
             if (directionId == 9999) directionId = Integer.parseInt(tuple.get("direction_id").toString());
 
             String tripHeadSign = tuple.get("trip_headsign").toString();
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparture(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateWithoutDash, timeZone);
-
             String departing = "";
             String nextSchedule = "";
+
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparture(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateWithoutDash, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 if (departing.isEmpty()) {
                     double depart = Double.parseDouble(tupleDeparture.get("rounded_minute").toString());
-                    if (depart > 2) {
-                        departing = tupleDeparture.get("rounded_minute").toString().replace(".0", "") + " Minutes";
-                    } else {
+                    if (depart <= 2) {
                         departing = "Now";
+                    } else {
+                        departing = tupleDeparture.get("rounded_minute").toString().replace(".0", "") + " Minutes";
                     }
                 } else {
-                    nextSchedule += (nextSchedule.isEmpty()) ? tupleDeparture.get("rounded_minute") : ", " + tupleDeparture.get("rounded_minute");
+                    nextSchedule = (nextSchedule.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextSchedule + ", " + tupleDeparture.get("rounded_minute");
                 }
-            }
-            if (!nextSchedule.isEmpty()) {
-                nextSchedule = nextSchedule.replace(".0", "") + " min";
             }
 
-            if (nextDepartureList.isEmpty() || nextSchedule.isEmpty()) {
-                int addDay = tripStartDate.compareTo(LocalDate.now(ZoneId.of(timeZone))) == 0 ? 0 : 1;
-                LocalDate nextDay = LocalDate.now(ZoneId.of(timeZone)).plusDays(addDay);
-                String date = nextDay.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                String day = nextDay.getDayOfWeek().name().toLowerCase();
-                List<Tuple> nextScheduledList = nextBusRepository.getNextScheduled(routeShortName, tripHeadSign, stopCode, date, day);
-                for (Tuple tupleScheduled : nextScheduledList) {
-                    LocalTime nextScheduled = LocalTime.parse(tupleScheduled.get("next_scheduled").toString());
-                    nextSchedule = "Scheduled at " + nextScheduled + " " + nextDay;
-                }
+            if (nextDepartureList.isEmpty()) {
+                nextSchedule = getNextScheduled(routeShortName, tripHeadSign, stopCode, arrayServiceId);
+            } else {
+                nextSchedule = nextSchedule.replace(".0", "") + " min";
             }
 
             departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, departing, nextSchedule));
@@ -189,5 +183,29 @@ public class NextBusService {
             arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
         }
         return arrayServiceId;
+    }
+
+    public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId) {
+        int add = 0;
+        String nextSchedule = "";
+        while (true) {
+            LocalDate nextTripStartDate = LocalDate.now(ZoneId.of(timeZone)).plusDays(add);
+            String date = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            List<Tuple> nextScheduledList = nextBusRepository.getNextScheduled(routeShortName, tripHeadSign, stopCode, arrayServiceId, date, timeZone);
+            if (nextScheduledList.isEmpty()) {
+                add++;
+                if (add >= 100) break;
+                continue;
+            }
+            for (Tuple tupleScheduled : nextScheduledList) {
+                LocalTime nextScheduled = LocalTime.parse(tupleScheduled.get("next_scheduled").toString());
+                nextSchedule = "Scheduled at " + nextScheduled.format(DateTimeFormatter.ofPattern("H:ma")).toLowerCase();
+                if (!nextTripStartDate.isEqual(LocalDate.now(ZoneId.of(timeZone)))) {
+                    nextSchedule += " " + nextTripStartDate;
+                }
+            }
+            break;
+        }
+        return nextSchedule;
     }
 }

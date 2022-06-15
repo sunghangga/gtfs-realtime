@@ -138,17 +138,19 @@ public class NextBusRepository {
     }
 
     public String queryNextDeparture(String routeShortName, String tripHeadSign, String stopCode, String serviceId, String date, String timeZone) {
-        return "select * from next_bus('" + routeShortName + "', '" + tripHeadSign + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')";
+        return "select * from next_bus('" + routeShortName + "', '" + tripHeadSign + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
+                "where rounded_minute <= 120\n" +
+                "limit 6";
     }
 
-    public List<Tuple> getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String date, String day) {
-        Query query = entityManager.createNativeQuery(queryNextScheduled(routeShortName, tripHeadSign, stopCode, date, day), Tuple.class);
+    public List<Tuple> getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId, String date, String timezone) {
+        Query query = entityManager.createNativeQuery(queryNextScheduled(routeShortName, tripHeadSign, stopCode, arrayServiceId, date, timezone), Tuple.class);
         entityManager.close();
         return query.getResultList();
     }
 
-    public String queryNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String date, String day) {
-        return "select cast(min(st.departure_time) as character varying) next_scheduled\n" +
+    public String queryNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId, String date, String timezone) {
+        return "select cast(st.departure_time as time) as next_scheduled\n" +
                 "from stop_times st\n" +
                 "join trips t on t.trip_id = st.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +
@@ -158,18 +160,9 @@ public class NextBusRepository {
                 "and r.route_short_name = '" + routeShortName + "'\n" +
                 "and s.stop_code = '" + stopCode + "'\n" +
                 "and t.trip_headsign = '" + tripHeadSign + "'\n" +
-                "and (\n" +
-                "\tt.service_id in (\n" +
-                "\t\tselect service_id from calendar\n" +
-                "\t\twhere '" + date + "' between start_date and end_date\n" +
-                "\t\tand " + day + " = '1'\n" +
-                "\t)\n" +
-                "\tor\n" +
-                "\tt.service_id in (\n" +
-                "\t\tselect service_id from calendar_dates\n" +
-                "\t\twhere date = '" + date + "'\n" +
-                "\t\tand exception_type <> '2'\n" +
-                "\t)\n" +
-                ")";
+                "and t.service_id in (" + arrayServiceId + ") \n" +
+                "and (to_date('" + date + "', 'YYYYMMDD') + st.departure_time) >= timezone('" + timezone + "', CURRENT_TIMESTAMP)\n" +
+                "order by st.departure_time\n" +
+                "limit 1";
     }
 }

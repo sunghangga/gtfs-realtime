@@ -20,6 +20,6 @@ public class StopDeparture {
     public static class DepartureSchedule {
         private String tripHeadSign;
         private String departing;
-        private String nextSchedule;
+        private String next;
     }
 }

@@ -46,7 +46,7 @@ public class BusScheduleService {
             List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
             List<String> scheduleList = new ArrayList<>();
             for (Tuple arrivalTime : arrivalTimeList) {
-                scheduleList.add(arrivalTime.get("format_12_hour").toString());
+                scheduleList.add(arrivalTime.get("time_schedule").toString());
             }
             stopSchedule.setArrivalTimes(scheduleList);
             stopScheduleList.add(stopSchedule);

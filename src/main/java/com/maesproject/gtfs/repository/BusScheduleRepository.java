@@ -20,15 +20,15 @@ public class BusScheduleRepository {
     }
 
     public String queryStop(String routeShortName, int directionId) {
-        return "select s.stop_id, s.stop_code, s.stop_name \n" +
-                "from ( \n" +
-                "\tselect distinct(st.stop_id) \n" +
-                "\tfrom stop_times st \n" +
-                "\tjoin trips t on t.trip_id = st.trip_id \n" +
-                "\tjoin routes r on r.route_id = t.route_id \n" +
-                "\twhere r.route_short_name = '" + routeShortName + "' \n" +
-                "\tand t.direction_id = '" + directionId + "' \n" +
-                ") as x \n" +
+        return "select s.stop_id, s.stop_code, s.stop_name\n" +
+                "from (\n" +
+                "\tselect distinct(st.stop_id)\n" +
+                "\tfrom stop_times st\n" +
+                "\tjoin trips t on t.trip_id = st.trip_id\n" +
+                "\tjoin routes r on r.route_id = t.route_id\n" +
+                "\twhere r.route_short_name = '" + routeShortName + "'\n" +
+                "\tand t.direction_id = '" + directionId + "'\n" +
+                ") as x\n" +
                 "join stops s on s.stop_id = x.stop_id";
     }
 
@@ -39,15 +39,15 @@ public class BusScheduleRepository {
     }
 
     public String queryArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
-        return "select to_char(st.arrival_time, 'hh:mi:ss') format_12_hour \n" +
-                "from stop_times st \n" +
-                "join trips t on t.trip_id = st.trip_id \n" +
-                "join routes r on r.route_id = t.route_id \n" +
-                "where r.route_short_name = '" + routeShortName + "' \n" +
-                "and t.direction_id = '" + directionId + "' \n" +
-                "and st.stop_id = '" + stopId + "' \n" +
-                "and t.service_id in (" + arrayServiceId + ") \n" +
-                "and to_date('" + date + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "' \n" +
+        return "select to_char(st.arrival_time, 'hh12:mi am') as time_schedule\n" +
+                "from stop_times st\n" +
+                "join trips t on t.trip_id = st.trip_id\n" +
+                "join routes r on r.route_id = t.route_id\n" +
+                "where r.route_short_name = '" + routeShortName + "'\n" +
+                "and t.direction_id = '" + directionId + "'\n" +
+                "and st.stop_id = '" + stopId + "'\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
+                "and to_date('" + date + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "'\n" +
                 "order by st.arrival_time";
     }
 }

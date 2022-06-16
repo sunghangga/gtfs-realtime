@@ -62,23 +62,13 @@ public class StopMonitoringController {
     }
 
     // get stop monitoring dummy data
-    @GetMapping(path = "api/gtfs/dummy/stopmonitoring", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(path = "api/gtfs/dummy/stopmonitoring", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<String> getDummyStopMonitoring(@RequestParam(required = true) String agency_id,
                                                          @RequestParam(required = false) String stop_id,
-                                                         @RequestParam(required = false) String format) {
+                                                         @RequestParam(required = false, defaultValue = "json") String format) {
 
         HttpHeaders headers = new HttpHeaders();
-        if (format != null && format.equalsIgnoreCase("json")) {
-            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            try {
-                String response = stopMonitoringService.getDummyStopMonitoringJson(agency_id, stop_id);
-                return new ResponseEntity<>(response, headers, HttpStatus.OK);
-            } catch (Exception e) {
-                Logger.error(e.getMessage());
-                return new ResponseEntity<>(responseMessageJson(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
+        if (format != null && format.equalsIgnoreCase("xml")) {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
             try {
@@ -87,6 +77,16 @@ public class StopMonitoringController {
             } catch (Exception e) {
                 Logger.error(e.getMessage());
                 return new ResponseEntity<>(responseMessageXml(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            try {
+                String response = stopMonitoringService.getDummyStopMonitoringJson(agency_id, stop_id);
+                return new ResponseEntity<>(response, headers, HttpStatus.OK);
+            } catch (Exception e) {
+                Logger.error(e.getMessage());
+                return new ResponseEntity<>(responseMessageJson(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }

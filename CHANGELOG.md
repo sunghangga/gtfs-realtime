@@ -108,4 +108,7 @@ All notable changes to this project will be documented in this file.
 
 ### Version [1.0.0] - 2021-12-31
 
-Initial release.
+Initial release:
+
+- Provide feature for consuming GTFS-Realtime data (trip-updates, vehicle-position, alert) from any GTFS-RT feeder.
+- Provide API for Stop-Monitoring.

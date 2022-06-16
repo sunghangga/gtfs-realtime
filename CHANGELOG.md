@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-### Version [1.4.0] - 2022-06-03
+### Version [2.0.0] - 2022-06-03
 
 #### Added:
 - Add API for next-bus
@@ -36,7 +36,7 @@ All notable changes to this project will be documented in this file.
 ### Version [1.3.2] - 2022-04-18
 
 #### Changed:
-- Add parameter "approx" for API SM
+- Add parameter "approx" for API Stop-Monitoring
 
 
 ---

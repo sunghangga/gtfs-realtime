@@ -135,7 +135,7 @@ public class NextBusService {
             String nextInfo = "";
 
             // get next departure
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparture(routeShortName, tripHeadSign, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByTripHeadSign(routeShortName, tripHeadSign, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 if (departing.isEmpty()) {
                     double depart = Double.parseDouble(tupleDeparture.get("rounded_minute").toString());
@@ -197,7 +197,7 @@ public class NextBusService {
             String departing = "";
             String nextInfo = "";
 
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByStop(routeShortName, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByRoute(routeShortName, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
             for (Tuple tuple : nextDepartureList) {
                 if (departing.isEmpty()) {
                     int depart = Integer.parseInt(tuple.get("rounded_minute").toString());

@@ -116,7 +116,7 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDeparture(String routeShortName, String tripHeadSign, String stopCode, String serviceId, String date, String timeZone) {
+    public List<Tuple> getNextDepartureByTripHeadSign(String routeShortName, String tripHeadSign, String stopCode, String serviceId, String date, String timeZone) {
         String sql = "select * from next_bus_by_trip_headsign('" + routeShortName + "', '" + tripHeadSign + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
                 "where rounded_minute <= 120\n" +
                 "limit 6";
@@ -125,8 +125,8 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDepartureByStop(String routeShortName, String stopCode, String serviceId, String date, String timeZone) {
-        String sql = "select * from next_bus_by_stop('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
+    public List<Tuple> getNextDepartureByRoute(String routeShortName, String stopCode, String serviceId, String date, String timeZone) {
+        String sql = "select * from next_bus_by_route('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
                 "where rounded_minute <= 120\n" +
                 "limit 5";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);

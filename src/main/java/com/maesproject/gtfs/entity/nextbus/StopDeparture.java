@@ -12,6 +12,7 @@ public class StopDeparture {
     private String stopName;
     private String stopCode;
     private String routeShortName;
+    private String routeLongName;
     private int directionId;
     private List<DepartureSchedule> departureSchedules;
 

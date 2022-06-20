@@ -213,7 +213,7 @@ public class NextBusService {
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
-                nextInfo = getNextScheduled("", "", stopCode);
+                nextInfo = getNextScheduled(routeShortName, "", stopCode);
             } else {
                 nextInfo += " min";
             }

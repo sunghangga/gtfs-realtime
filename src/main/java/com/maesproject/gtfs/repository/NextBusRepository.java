@@ -165,10 +165,8 @@ public class NextBusRepository {
                 "join stops s on s.stop_id = st.stop_id\n" +
                 "where st.pickup_type is distinct from '1'\n" +
                 "and st.drop_off_type is distinct from '1'\n" +
+                "and r.route_short_name = '" + routeShortName + "'\n" +
                 "and s.stop_code = '" + stopCode + "'\n";
-        if (!routeShortName.isEmpty()) {
-            sql += "and r.route_short_name = '" + routeShortName + "'\n";
-        }
         if (!tripHeadSign.isEmpty()) {
             sql += "and t.trip_headsign = '" + tripHeadSign + "'\n";
         }

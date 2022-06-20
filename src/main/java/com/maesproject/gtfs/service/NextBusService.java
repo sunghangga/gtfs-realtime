@@ -112,10 +112,10 @@ public class NextBusService {
         LocalDate tripStartDate = getTripStartDate(stopCode);
         if (tripStartDate == null) return new StopDeparture();
 
-        // get service id
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String dayOfWeek = tripStartDate.getDayOfWeek().name().toLowerCase();
-        String arrayServiceId = getArrayServiceId(tripStartDateWithoutDash, dayOfWeek);
+
+        // get service id
+        String arrayServiceId = getAllActiveServiceId(tripStartDate);
 
         String stopName = "";
         String routeLongName = "";
@@ -151,7 +151,7 @@ public class NextBusService {
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
-                nextInfo = getNextScheduled(routeShortName, tripHeadSign, stopCode, arrayServiceId);
+                nextInfo = getNextScheduled(routeShortName, tripHeadSign, stopCode);
             } else {
                 nextInfo += " min";
             }
@@ -178,10 +178,10 @@ public class NextBusService {
             return objectNode.toString();
         }
 
-        // get service id
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String dayOfWeek = tripStartDate.getDayOfWeek().name().toLowerCase();
-        String arrayServiceId = getArrayServiceId(tripStartDateWithoutDash, dayOfWeek);
+
+        // get service id
+        String arrayServiceId = getAllActiveServiceId(tripStartDate);
 
         String stopName = "";
         ArrayNode arrayRouteDeparture = new ObjectMapper().createArrayNode();
@@ -213,7 +213,7 @@ public class NextBusService {
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
-                nextInfo = getNextScheduled("", "", stopCode, arrayServiceId);
+                nextInfo = getNextScheduled("", "", stopCode);
             } else {
                 nextInfo += " min";
             }
@@ -267,16 +267,29 @@ public class NextBusService {
         return arrayServiceId;
     }
 
-    public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId) {
+    public String getAllActiveServiceId(LocalDate dateCheck) {
+        String arrayServiceId = "";
+        String dateWithoutDash = dateCheck.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String dayOfWeek = dateCheck.getDayOfWeek().name().toLowerCase();
+        List<Tuple> serviceIdCalendar = nextBusRepository.getAllActiveServiceId(dateWithoutDash, dayOfWeek);
+        for (Tuple tuple : serviceIdCalendar) {
+            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
+        }
+        return arrayServiceId;
+    }
+
+    public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode) {
         int add = 0;
         String nextSchedule = "";
         while (true) {
             LocalDate nextTripStartDate = LocalDate.now(ZoneId.of(timeZone)).plusDays(add);
             String date = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String arrayServiceId = getAllActiveServiceId(nextTripStartDate);
+
             String nextScheduled = nextBusRepository.getNextScheduled(routeShortName, tripHeadSign, stopCode, arrayServiceId, date, timeZone);
             if (nextScheduled == null) {
                 add++;
-                if (add >= 100) break;
+                if (add >= 30) break;
                 continue;
             }
             nextSchedule = "Scheduled at " + nextScheduled;

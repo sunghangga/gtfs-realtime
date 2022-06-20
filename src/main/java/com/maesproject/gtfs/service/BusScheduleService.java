@@ -23,9 +23,7 @@ public class BusScheduleService {
         LocalDate date = LocalDate.parse(dateCheck);
         LocalTime start = LocalTime.parse(startTime);
         LocalTime end = LocalTime.parse(endTime);
-        String dateWithoutDash = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String dayOfWeek = date.getDayOfWeek().name().toLowerCase();
-        String arrayServiceId = nextBusService.getArrayServiceId(dateWithoutDash, dayOfWeek);
+        String arrayServiceId = nextBusService.getAllActiveServiceId(date);
 
         String startDateTime = date + " " + start;
         String endDateTime = date + " " + end;

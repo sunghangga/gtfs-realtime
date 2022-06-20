@@ -86,7 +86,12 @@ public class NextBusRepository {
     public List<Tuple> getServiceIdCalendar(String date, String day) {
         String sql = "select service_id from calendar\n" +
                 "where '" + date + "' between start_date and end_date\n" +
-                "and " + day + " = '1'";
+                "and " + day + " = '1'\n" +
+                "and service_id not in (\n" +
+                "\tselect service_id from calendar_dates\n" +
+                "\twhere date = '" + date + "'\n" +
+                "\tand exception_type = '2'\n" +
+                ")";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -94,6 +99,24 @@ public class NextBusRepository {
 
     public List<Tuple> getServiceIdCalendarDates(String date) {
         String sql = "select service_id from calendar_dates\n" +
+                "where date = '" + date + "'\n" +
+                "and exception_type <> '2'";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getAllActiveServiceId(String date, String day) {
+        String sql = "select service_id from calendar\n" +
+                "where '" + date + "' between start_date and end_date\n" +
+                "and " + day + " = '1'\n" +
+                "and service_id not in (\n" +
+                "\tselect service_id from calendar_dates\n" +
+                "\twhere date = '" + date + "'\n" +
+                "\tand exception_type = '2'\n" +
+                ")\n" +
+                "union\n" +
+                "select service_id from calendar_dates\n" +
                 "where date = '" + date + "'\n" +
                 "and exception_type <> '2'";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);

@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+### Version [2.1.0] - 2022-06-21
+
+#### Change:
+- Add departure delay seconds to predict departure time on next-bus API
+
+#### Fixed:
+- Fix bug in query when getting next-scheduled time on next-bus API
+
+---
+
+
 ### Version [2.0.0] - 2022-06-03
 
 #### Added:

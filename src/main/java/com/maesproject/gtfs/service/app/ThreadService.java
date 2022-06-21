@@ -1,4 +1,4 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.app;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;

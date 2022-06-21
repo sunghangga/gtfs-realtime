@@ -3,7 +3,7 @@ package com.maesproject.gtfs.controller;
 import com.maesproject.gtfs.entity.nextbus.Destination;
 import com.maesproject.gtfs.entity.nextbus.DestinationStop;
 import com.maesproject.gtfs.entity.nextbus.StopDeparture;
-import com.maesproject.gtfs.service.NextBusService;
+import com.maesproject.gtfs.service.api.NextBusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,7 +58,7 @@ public class NextBusController {
     public ResponseEntity<Object> getNextDeparture(@PathVariable("route") String routeShortName,
                                                    @PathVariable("stop") String stopCode) {
 
-        StopDeparture response = nextBusService.getNextDeparture(routeShortName, stopCode);
+        StopDeparture response = nextBusService.getNextDepartureByRouteAndStop(routeShortName, stopCode);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

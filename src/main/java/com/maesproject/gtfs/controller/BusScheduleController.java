@@ -1,7 +1,7 @@
 package com.maesproject.gtfs.controller;
 
 import com.maesproject.gtfs.entity.busschedule.BusSchedule;
-import com.maesproject.gtfs.service.BusScheduleService;
+import com.maesproject.gtfs.service.api.BusScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

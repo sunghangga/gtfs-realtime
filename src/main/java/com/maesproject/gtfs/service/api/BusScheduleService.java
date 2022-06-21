@@ -1,4 +1,4 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.api;
 
 import com.maesproject.gtfs.entity.busschedule.BusSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;

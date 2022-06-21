@@ -1,4 +1,4 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;

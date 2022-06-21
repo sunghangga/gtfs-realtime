@@ -1,8 +1,10 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.app;
 
 import com.maesproject.gtfs.repository.AlertRepository;
 import com.maesproject.gtfs.repository.TripUpdateRepository;
 import com.maesproject.gtfs.repository.VehiclePositionRepository;
+import com.maesproject.gtfs.service.GtfsRealtimeConsumer;
+import com.maesproject.gtfs.service.VehicleService;
 import com.maesproject.gtfs.util.GlobalVariable;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,7 +2,7 @@ package com.maesproject.gtfs.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.maesproject.gtfs.service.StopMonitoringService;
+import com.maesproject.gtfs.service.api.StopMonitoringService;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;

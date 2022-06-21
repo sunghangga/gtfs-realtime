@@ -1,4 +1,4 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -107,12 +107,13 @@ public class NextBusService {
         return destinationStop;
     }
 
-    public StopDeparture getNextDeparture(String routeShortName, String stopCode) {
+    public StopDeparture getNextDepartureByRouteAndStop(String routeShortName, String stopCode) {
         // get trip start date
         LocalDate tripStartDate = getTripStartDate(stopCode);
         if (tripStartDate == null) return new StopDeparture();
 
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String dayOfWeek = tripStartDate.getDayOfWeek().name().toLowerCase();
 
         // get service id
         String arrayServiceId = getAllActiveServiceId(tripStartDate);
@@ -135,17 +136,18 @@ public class NextBusService {
             String nextInfo = "";
 
             // get next departure
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByTripHeadSign(routeShortName, tripHeadSign, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
+//            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByTripHeadSign(routeShortName, tripHeadSign, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSignWithDelay(routeShortName, stopCode, tripHeadSign, tripStartDateWithoutDash, dayOfWeek, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 if (departing.isEmpty()) {
-                    double depart = Double.parseDouble(tupleDeparture.get("rounded_minute").toString());
+                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute_with_delay").toString().replace(".0", ""));
                     if (depart <= 2) {
                         departing = "Now";
                     } else {
-                        departing = tupleDeparture.get("rounded_minute").toString() + " Minutes";
+                        departing = depart + " Minutes";
                     }
                 } else {
-                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextInfo + ", " + tupleDeparture.get("rounded_minute");
+                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute_with_delay") : nextInfo + ", " + tupleDeparture.get("rounded_minute_with_delay");
                 }
             }
 
@@ -153,7 +155,7 @@ public class NextBusService {
                 // find next scheduled time
                 nextInfo = getNextScheduled(routeShortName, tripHeadSign, stopCode);
             } else {
-                nextInfo += " min";
+                nextInfo = nextInfo.replace(".0", "") + " min";
             }
 
             departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, departing, nextInfo));
@@ -299,5 +301,9 @@ public class NextBusService {
             break;
         }
         return nextSchedule;
+    }
+
+    public void getNextDeparturePerTripHeadSignWithDelay() {
+
     }
 }

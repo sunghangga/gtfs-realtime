@@ -1,6 +1,5 @@
-package com.maesproject.gtfs.service;
+package com.maesproject.gtfs.service.app;
 
-import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

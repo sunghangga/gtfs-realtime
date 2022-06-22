@@ -9,13 +9,13 @@ services:
         depends_on:
             - gtfs-db
         environment:
-            - SPRING_DATASOURCE_URL=jdbc:postgresql://gtfs-db-test:5432/gtfs-timetable
+            - SPRING_DATASOURCE_URL=jdbc:postgresql://gtfs-db-test:5432/gtfs_van
             - SPRING_DATASOURCE_USERNAME=postgres
             - SPRING_DATASOURCE_PASSWORD=postgres
             - SERVER_PORT=8080
-            - FIXEDDELAY_IN_MILLISECONDS=20000
-            - DELETE_REALTIME_START_DAY=1
-            - CRON_EXPRESSION_DELETE_REALTIME=@hourly
+            - FIXED_DELAY_CONSUME_REALTIME_MILLISECONDS=5000
+            - FIXED_DELAY_DELETE_REALTIME_MILLISECONDS=90000
+            - DELETE_REALTIME_START_DAY=0
 
     gtfs-db:
         image: postgres
@@ -25,6 +25,6 @@ services:
         environment:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=postgres
-            - POSTGRES_DB=gtfs-timetable
+            - POSTGRES_DB=gtfs_van
         volumes:
             - D:\Project\Java\Test\test-docker-gtfs/gtfs-empty.sql:/docker-entrypoint-initdb.d/gtfs-empty.sql

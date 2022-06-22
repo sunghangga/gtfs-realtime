@@ -42,7 +42,6 @@ public class ScheduleService implements GlobalVariable {
     @Value("${timezone}")
     private String timeZone;
 
-    private final long initialDelay = 100;
     private long timestampTrip = 0;
     private long timestampVehicle = 0;
     private long timestampAlert = 0;
@@ -52,7 +51,7 @@ public class ScheduleService implements GlobalVariable {
     private boolean printUrlInfoVehiclePosition = true;
     private boolean printUrlInfoAlert = true;
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
+    @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}", initialDelay = 200)
     public void consumeTripUpdate() {
         if (printUrlInfoTripUpdate) {
             Logger.info("Consuming data from " + urlTripUpdate);
@@ -61,7 +60,7 @@ public class ScheduleService implements GlobalVariable {
         timestampTrip = gtfsRealtimeConsumer.consume(urlTripUpdate, GTFS_TRIP_UPDATE, timestampTrip);
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
+    @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}", initialDelay = 200)
     public void consumeVehiclePosition() {
         if (printUrlInfoVehiclePosition) {
             Logger.info("Consuming data from " + urlTripUpdate);
@@ -70,7 +69,7 @@ public class ScheduleService implements GlobalVariable {
         timestampVehicle = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehicle);
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}", initialDelay = initialDelay)
+    @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}", initialDelay = 200)
     public void consumeAlert() {
         if (printUrlInfoAlert) {
             Logger.info("Consuming data from " + urlTripUpdate);
@@ -79,12 +78,12 @@ public class ScheduleService implements GlobalVariable {
         timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);
     }
 
-//    @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+//    @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}")
 //    public void consumeVehicleId() {
 //        timestampBusList = vehicleService.collectVehicleId(urlVehiclePosition, timestampBusList);
 //    }
 
-    @Scheduled(cron = "${cron.expression.delete-realtime}", zone = "${timezone}")
+    @Scheduled(fixedDelayString = "${fixed.delay.delete.realtime.milliseconds}", initialDelay = 100)
     public void deleteExpiredRealtimeData() {
         try {
             // set timestamp parameter in seconds

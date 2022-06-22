@@ -3,7 +3,6 @@ package com.maesproject.gtfs.service;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,9 +14,6 @@ import java.util.List;
 public class GtfsRealtimeConsumer {
     @Autowired
     private InitializeManager initializeManager;
-
-    @Value("${consume.realtime.seconds.interval}")
-    private int consumeInterval;
 
     public long consume(String feedUrl, String type, long lastTimestamp) {
         try {
@@ -59,60 +55,4 @@ public class GtfsRealtimeConsumer {
         return lastTimestamp;
     }
 
-    public void consumeFeed(String feedUrl) {
-        Logger.info("Consuming data from " + feedUrl);
-        String[] gtfsVersion = {"1.0", "2.0"};
-        List<String> gtfsVersionList = Arrays.asList(gtfsVersion);
-        long lastTimestamp = 0;
-        boolean loop = true;
-
-        while (loop) {
-            FeedMessage feed;
-            try {
-                URL url = new URL(feedUrl);
-                feed = FeedMessage.parseFrom(url.openStream());
-            } catch (IOException e) {
-                int delay = 10;
-                Logger.error("Error while parsing GTFS data from " + feedUrl);
-                Logger.error(e.getMessage());
-                Logger.info("Reconnecting to " + feedUrl + " in " + delay + " seconds");
-                wait(delay);
-                continue;
-            }
-
-            if (feed.getHeader().hasTimestamp()) {
-                // check if data is new
-                if (lastTimestamp != feed.getHeader().getTimestamp()) {
-                    lastTimestamp = feed.getHeader().getTimestamp();
-
-                    // check header detail
-                    if (!feed.getHeader().getIncrementality().toString().equals("FULL_DATASET")) {
-                        Logger.warn("Feed " + feedUrl + " 'incrementality' is " + feed.getHeader().getIncrementality());
-                    }
-                    if (!gtfsVersionList.contains(feed.getHeader().getGtfsRealtimeVersion())) {
-                        Logger.warn("Feed " + feedUrl + " is using GTFS-Realtime version " + feed.getHeader().getGtfsRealtimeVersion());
-                    }
-
-                    // process data
-                    try {
-                        boolean result = initializeManager.initializeData(feed, feedUrl);
-                        if (!result) loop = false;
-                    } catch (Exception e) {
-                        Logger.error(e.getMessage());
-                    }
-                }
-            }
-
-            if (loop) wait(consumeInterval);
-        }
-        Logger.warn("Stop consuming data from feeder " + feedUrl);
-    }
-
-    public void wait(int seconds) {
-        try {
-            Thread.sleep(1000L * seconds);
-        } catch (InterruptedException e) {
-            Logger.error(e.getMessage());
-        }
-    }
 }

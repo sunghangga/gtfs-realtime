@@ -53,22 +53,6 @@ public class InitializeManager implements GlobalVariable {
         }
     }
 
-    public boolean initializeData(FeedMessage feedMessage, String feedUrl) {
-        if (feedUrl.toLowerCase().contains("trip")) {
-            saveTripUpdate(feedMessage);
-            return true;
-        } else if (feedUrl.toLowerCase().contains("vehicle")) {
-            saveVehiclePosition(feedMessage);
-            return true;
-        } else if (feedUrl.toLowerCase().contains("alert")) {
-            saveAlert(feedMessage);
-            return true;
-        } else {
-            Logger.warn("No action available for feed " + feedUrl);
-            return false;
-        }
-    }
-
     public void saveTripUpdate(FeedMessage feed) {
         LocalDateTime start = LocalDateTime.now();
         List<StopTimeUpdateEntity> stopTimeUpdateEntities = new ArrayList<>();

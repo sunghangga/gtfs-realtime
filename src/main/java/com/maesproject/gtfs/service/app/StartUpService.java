@@ -27,22 +27,4 @@ public class StartUpService {
         System.out.println("\nGTFS-Realtime-Consumer is running...\n");
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(2)
-    public void deleteRealtimeFirstTime() {
-        scheduleService.deleteExpiredRealtimeData();
-    }
-
-//    @EventListener(ApplicationReadyEvent.class)
-//    @Order(3)
-//    public void startGtfsRealtimeConsumer() {
-//        String[] feedUrls = {
-//                urlTripUpdate,
-//                urlVehiclePosition,
-//                urlAlert
-//        };
-//        for (String url : feedUrls) {
-//            threadService.consumeFeed(url);
-//        }
-//    }
 }

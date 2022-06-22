@@ -14,13 +14,7 @@ public class BusScheduleRepository {
     private EntityManager entityManager;
 
     public List<Tuple> getStop(String routeShortName, int directionId) {
-        Query query = entityManager.createNativeQuery(queryStop(routeShortName, directionId), Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
-    public String queryStop(String routeShortName, int directionId) {
-        return "select s.stop_id, s.stop_code, s.stop_name\n" +
+        String sql = "select s.stop_id, s.stop_code, s.stop_name\n" +
                 "from (\n" +
                 "\tselect distinct(st.stop_id)\n" +
                 "\tfrom stop_times st\n" +
@@ -30,16 +24,13 @@ public class BusScheduleRepository {
                 "\tand t.direction_id = '" + directionId + "'\n" +
                 ") as x\n" +
                 "join stops s on s.stop_id = x.stop_id";
-    }
-
-    public List<Tuple> getArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
-        Query query = entityManager.createNativeQuery(queryArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date, startDateTime, endDateTime), Tuple.class);
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
     }
 
-    public String queryArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
-        return "select to_char(st.arrival_time, 'hh12:mi am') as time_schedule\n" +
+    public List<Tuple> getArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
+        String sql = "select to_char(st.arrival_time, 'hh12:mi am') as time_schedule\n" +
                 "from stop_times st\n" +
                 "join trips t on t.trip_id = st.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +
@@ -49,5 +40,9 @@ public class BusScheduleRepository {
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "and to_date('" + date + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "'\n" +
                 "order by st.arrival_time";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
     }
+
 }

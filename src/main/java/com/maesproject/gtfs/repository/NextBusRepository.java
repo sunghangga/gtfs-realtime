@@ -85,29 +85,6 @@ public class NextBusRepository {
         }
     }
 
-    public List<Tuple> getServiceIdCalendar(String date, String day) {
-        String sql = "select service_id from calendar\n" +
-                "where '" + date + "' between start_date and end_date\n" +
-                "and " + day + " = '1'\n" +
-                "and service_id not in (\n" +
-                "\tselect service_id from calendar_dates\n" +
-                "\twhere date = '" + date + "'\n" +
-                "\tand exception_type = '2'\n" +
-                ")";
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
-    public List<Tuple> getServiceIdCalendarDates(String date) {
-        String sql = "select service_id from calendar_dates\n" +
-                "where date = '" + date + "'\n" +
-                "and exception_type <> '2'";
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
     public List<Tuple> getAllActiveServiceId(String date, String day) {
         String sql = "select service_id from calendar\n" +
                 "where '" + date + "' between start_date and end_date\n" +
@@ -202,50 +179,6 @@ public class NextBusRepository {
         List<Tuple> result = query.getResultList();
         for (Tuple tuple : result) {
             return LocalDateTime.parse(tuple.get("next_scheduled").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
-        }
-        return null;
-    }
-
-    public List<Tuple> getNextDepartureByTripHeadSign(String routeShortName, String tripHeadSign, String stopCode, String serviceId, String date, String timeZone) {
-        String sql = "select * from next_bus_by_trip_head_sign('" + routeShortName + "', '" + tripHeadSign + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
-                "where rounded_minute <= 120\n" +
-                "limit 6";
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
-    public List<Tuple> getNextDepartureByRoute(String routeShortName, String stopCode, String serviceId, String date, String timeZone) {
-        String sql = "select * from next_bus_by_route('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + date + "', '" + timeZone + "')\n" +
-                "where rounded_minute <= 120\n" +
-                "limit 5";
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
-    public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId, String date, String timeZone) {
-        String sql = "select to_char(st.departure_time, 'hh12:miam') as next_scheduled\n" +
-                "from stop_times st\n" +
-                "join trips t on t.trip_id = st.trip_id\n" +
-                "join routes r on r.route_id = t.route_id\n" +
-                "join stops s on s.stop_id = st.stop_id\n" +
-                "where st.pickup_type is distinct from '1'\n" +
-                "and st.drop_off_type is distinct from '1'\n" +
-                "and r.route_short_name = '" + routeShortName + "'\n" +
-                "and s.stop_code = '" + stopCode + "'\n";
-        if (!tripHeadSign.isEmpty()) {
-            sql += "and t.trip_headsign = '" + tripHeadSign + "'\n";
-        }
-        sql += "and t.service_id in (" + arrayServiceId + ") \n" +
-                "and (to_date('" + date + "', 'YYYYMMDD') + st.departure_time) >= timezone('" + timeZone + "', CURRENT_TIMESTAMP)\n" +
-                "order by st.departure_time\n" +
-                "limit 1";
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        List<Tuple> result = query.getResultList();
-        for (Tuple tuple : result) {
-            return tuple.get("next_scheduled").toString();
         }
         return null;
     }

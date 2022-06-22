@@ -53,20 +53,15 @@ public class NextBusService {
         List<Destination.DestinationTrip> destinationTripList = new ArrayList<>();
         for (int i : directionList) {
             Destination.DestinationTrip destinationTrip = new Destination.DestinationTrip();
-            String headSign1 = "";
-            String headSign2 = "";
+            String combinedTripHeadSign = "";
             for (Tuple tuple : tripHeadSignList) {
                 int direction = Integer.parseInt(tuple.get("direction_id").toString());
                 if (direction == i) {
                     String tripHeadSign = tuple.get("trip_headsign").toString();
-                    if (tripHeadSign.toLowerCase().contains("to ")) {
-                        headSign1 = tripHeadSign;
-                    } else {
-                        headSign2 = tripHeadSign;
-                    }
+                    combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
                 }
             }
-            destinationTrip.setCombinedTripHeadSign(headSign1 + " / " + headSign2);
+            destinationTrip.setCombinedTripHeadSign(combinedTripHeadSign);
             destinationTrip.setDirectionId(i);
             destinationTripList.add(destinationTrip);
         }
@@ -84,25 +79,26 @@ public class NextBusService {
         for (Tuple tuple : stopList) {
             stopCheckList.add(new DestinationStop.StopCheck(
                     tuple.get("stop_code").toString(),
-                    tuple.get("stop_name").toString().replace("@", "at")
+                    tuple.get("stop_name").toString()
+                            .replace("@", "at")
+                            .replace("Eastbound", "")
+                            .replace("Westbound", "")
+                            .replace("Northbound", "")
+                            .replace("Southbound", "")
+                            .trim()
             ));
         }
 
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteDirection(routeShortName, directionId);
-        String headSign1 = "";
-        String headSign2 = "";
+        String combinedTripHeadSign = "";
         for (Tuple tuple : tripHeadSignList) {
             String tripHeadSign = tuple.get("trip_headsign").toString();
-            if (tripHeadSign.toLowerCase().contains("to ")) {
-                headSign1 = tripHeadSign;
-            } else {
-                headSign2 = tripHeadSign;
-            }
+            combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
         }
 
         DestinationStop destinationStop = new DestinationStop();
         destinationStop.setRouteShortName(routeShortName);
-        destinationStop.setCombinedTripHeadSign(headSign1 + " / " + headSign2);
+        destinationStop.setCombinedTripHeadSign(combinedTripHeadSign);
         destinationStop.setOppositeDirection((directionId == 0) ? 1 : 0);
         destinationStop.setStopChecks(stopCheckList);
         return destinationStop;
@@ -138,7 +134,6 @@ public class NextBusService {
             String lastDepartureDateTime = "";
 
             // get next departure
-//            List<Tuple> nextDepartureList = nextBusRepository.getNextDepartureByTripHeadSign(routeShortName, tripHeadSign, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
             List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSignWithDelay(routeShortName, stopCode, tripHeadSign, arrayServiceId, tripStartDateWithoutDash, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
@@ -259,19 +254,6 @@ public class NextBusService {
             tripStartDate = LocalDate.now(ZoneId.of(timeZone)).minusDays(1);
         }
         return tripStartDate;
-    }
-
-    public String getArrayServiceId(String dateWithoutDash, String dayOfWeek) {
-        String arrayServiceId = "";
-        List<Tuple> serviceIdCalendar = nextBusRepository.getServiceIdCalendar(dateWithoutDash, dayOfWeek);
-        for (Tuple tuple : serviceIdCalendar) {
-            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
-        }
-        List<Tuple> serviceIdCalendarDate = nextBusRepository.getServiceIdCalendarDates(dateWithoutDash);
-        for (Tuple tuple : serviceIdCalendarDate) {
-            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
-        }
-        return arrayServiceId;
     }
 
     public String getAllActiveServiceId(LocalDate dateCheck) {

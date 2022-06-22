@@ -35,9 +35,15 @@ public class BusScheduleService {
         List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
         List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
         for (Tuple tuple : stopList) {
+            String stopName = tuple.get("stop_name").toString()
+                    .replace("Eastbound","")
+                    .replace("Westbound","")
+                    .replace("Northbound","")
+                    .replace("Southbound","")
+                    .trim();
             BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
             stopSchedule.setStopCode(tuple.get("stop_code").toString());
-            stopSchedule.setStopName(tuple.get("stop_name").toString());
+            stopSchedule.setStopName(stopName);
             String stopId = tuple.get("stop_id").toString();
             List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
             List<String> scheduleList = new ArrayList<>();

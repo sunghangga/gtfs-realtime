@@ -15,7 +15,8 @@ services:
             - SERVER_PORT=8080
             - FIXED_DELAY_CONSUME_REALTIME_MILLISECONDS=5000
             - FIXED_DELAY_DELETE_REALTIME_MILLISECONDS=90000
-            - DELETE_REALTIME_START_DAY=0
+            - DELETE_REALTIME_MINUS_DAY=0
+            - DELETE_REALTIME_MINUS_SECOND=90
 
     gtfs-db:
         image: postgres

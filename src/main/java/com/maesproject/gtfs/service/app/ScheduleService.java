@@ -35,8 +35,10 @@ public class ScheduleService implements GlobalVariable {
     private String urlVehiclePosition;
     @Value("${url.alert}")
     private String urlAlert;
-    @Value("${delete.realtime.start-day}")
-    private int startDay;
+    @Value("${delete.realtime.minus-day}")
+    private int minusDay;
+    @Value("${delete.realtime.minus-second}")
+    private int minusSecond;
     @Value("${print.count-info}")
     private boolean printCountInfo;
     @Value("${timezone}")
@@ -88,9 +90,9 @@ public class ScheduleService implements GlobalVariable {
         try {
             // set timestamp parameter in seconds
             LocalDateTime now = LocalDateTime.now(ZoneId.of(timeZone));
-            LocalDateTime dayBefore = now.minusDays(startDay);
-            long timeInSeconds = dayBefore.atZone(ZoneId.of(timeZone)).toEpochSecond();
-            String timeDelete = dayBefore.atZone(ZoneId.of(timeZone)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime dateTimeToDelete = now.minusDays(minusDay).minusSeconds(minusSecond);
+            long timeInSeconds = dateTimeToDelete.atZone(ZoneId.of(timeZone)).toEpochSecond();
+            String timeDelete = dateTimeToDelete.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
             int resultTripUpdate = tripUpdateRepository.deleteByTimestampLessThan(timeInSeconds);
             int resultVehiclePosition = vehiclePositionRepository.deleteByTimestampLessThan(timeInSeconds);

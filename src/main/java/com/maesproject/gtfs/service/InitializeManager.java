@@ -118,15 +118,6 @@ public class InitializeManager implements GlobalVariable {
                     tripUpdateIdList.add(tu.getId());
                 }
 
-//                TripUpdateEntity oldTripUpdate = tripUpdateRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(
-//                        tripUpdateEntity.getTripId(),
-//                        tripUpdateEntity.getRouteId(),
-//                        tripUpdateEntity.getDirectionId(),
-//                        tripUpdateEntity.getTripStartDate(),
-//                        tripUpdateEntity.getTripStartTime()
-//                );
-//                if (oldTripUpdate != null) tripUpdateIdList.add(oldTripUpdate.getId());
-
                 // save new trip update
                 tripUpdateRepository.save(tripUpdateEntity);
                 tripUpdateSaved++;
@@ -280,16 +271,6 @@ public class InitializeManager implements GlobalVariable {
                 for (VehiclePositionEntity vp : oldVehiclePositionList) {
                     vehiclePositionIdList.add(vp.getId());
                 }
-
-//                VehiclePositionEntity oldVehiclePosition = vehiclePositionRepository.findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTimeAndVehicleLabel(
-//                        vehiclePositionEntity.getTripId(),
-//                        vehiclePositionEntity.getRouteId(),
-//                        vehiclePositionEntity.getDirectionId(),
-//                        vehiclePositionEntity.getTripStartDate(),
-//                        vehiclePositionEntity.getTripStartTime(),
-//                        vehiclePositionEntity.getVehicleLabel()
-//                );
-//                if (oldVehiclePosition != null) vehiclePositionIdList.add(oldVehiclePosition.getId());
             }
         }
 
@@ -363,9 +344,6 @@ public class InitializeManager implements GlobalVariable {
                     for (AlertEntity a : oldAlertList) {
                         alertIdList.add(a.getId());
                     }
-
-//                    AlertEntity oldAlert = alertRepository.findByEntityId(alertEntity.getEntityId());
-//                    if (oldAlert != null) alertIdList.add(oldAlert.getId());
 
                     // save new alert
                     alertRepository.save(alertEntity);

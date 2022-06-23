@@ -12,8 +12,6 @@ public interface TripUpdateRepository extends JpaRepository<TripUpdateEntity, Lo
 
     List<TripUpdateEntity> findByTripId(String tripId);
 
-    TripUpdateEntity findByTripIdAndRouteIdAndDirectionIdAndTripStartDateAndTripStartTime(String tripId, String routeId, int directionId, String tripStartDate, String tripStartTime);
-
     int deleteByIdIn(List<Long> tripUpdateIdList);
 
     @Transactional

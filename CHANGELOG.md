@@ -1,11 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-### Version [2.1.1] - 2022-06-21
+### Version [2.1.1] - 2022-06-23
 
 #### Change:
 - Change delete-realtime function from using cron-expression to fixed-delay
-
+- Change delete-realtime interval to every 90 seconds
 
 ---
 

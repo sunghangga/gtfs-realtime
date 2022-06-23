@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.Tuple;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,8 @@ public class BusScheduleService {
             List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
             List<String> scheduleList = new ArrayList<>();
             for (Tuple arrivalTime : arrivalTimeList) {
-                scheduleList.add(arrivalTime.get("time_schedule").toString());
+                LocalTime time = LocalTime.parse(arrivalTime.get("time_schedule").toString());
+                scheduleList.add(time.format(DateTimeFormatter.ofPattern("h:mm a")).toLowerCase());
             }
             stopSchedule.setArrivalTimes(scheduleList);
             stopScheduleList.add(stopSchedule);

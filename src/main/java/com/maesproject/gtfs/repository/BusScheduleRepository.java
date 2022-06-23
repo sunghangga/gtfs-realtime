@@ -30,7 +30,7 @@ public class BusScheduleRepository {
     }
 
     public List<Tuple> getArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
-        String sql = "select to_char(st.arrival_time, 'hh12:mi am') as time_schedule\n" +
+        String sql = "select cast(st.arrival_time as time) as time_schedule\n" +
                 "from stop_times st\n" +
                 "join trips t on t.trip_id = st.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +

@@ -65,7 +65,7 @@ public class ScheduleService implements GlobalVariable {
     @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}", initialDelay = 200)
     public void consumeVehiclePosition() {
         if (printUrlInfoVehiclePosition) {
-            Logger.info("Consuming data from " + urlTripUpdate);
+            Logger.info("Consuming data from " + urlVehiclePosition);
             printUrlInfoVehiclePosition = false;
         }
         timestampVehicle = gtfsRealtimeConsumer.consume(urlVehiclePosition, GTFS_VEHICLE_POSITION, timestampVehicle);
@@ -74,7 +74,7 @@ public class ScheduleService implements GlobalVariable {
     @Scheduled(fixedDelayString = "${fixed.delay.consume.realtime.milliseconds}", initialDelay = 200)
     public void consumeAlert() {
         if (printUrlInfoAlert) {
-            Logger.info("Consuming data from " + urlTripUpdate);
+            Logger.info("Consuming data from " + urlAlert);
             printUrlInfoAlert = false;
         }
         timestampAlert = gtfsRealtimeConsumer.consume(urlAlert, GTFS_ALERT, timestampAlert);

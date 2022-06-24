@@ -134,6 +134,7 @@ public class NextBusRepository {
     public List<Tuple> getNextDeparturePerTripHeadSignWithDelay(String routeShortName, String stopCode, String tripHeadSign, String serviceId, String dateWithoutDash, String timezone) {
         String sql = "select * from next_bus_by_trip_head_sign_with_delay('" + routeShortName + "', '" + stopCode + "', '" + tripHeadSign + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timezone + "')\n" +
                 "where rounded_minute_with_delay <= 120\n" +
+                "order by rounded_minute_with_delay\n" +
                 "limit 6";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
@@ -143,6 +144,7 @@ public class NextBusRepository {
     public List<Tuple> getNextDeparturePerRouteWithDelay(String routeShortName, String stopCode, String serviceId, String dateWithoutDash, String timeZone) {
         String sql = "select * from next_bus_by_route_with_delay('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timeZone + "')\n" +
                 "where rounded_minute_with_delay <= 120\n" +
+                "order by rounded_minute_with_delay\n" +
                 "limit 5";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();

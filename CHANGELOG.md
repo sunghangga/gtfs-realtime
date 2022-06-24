@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 
 #### Change:
 - Change delete-realtime function from using cron-expression to fixed-delay
-- Change delete-realtime interval to every 90 seconds
 
 ---
 
@@ -72,7 +71,7 @@ All notable changes to this project will be documented in this file.
 - Change id type from integer to long for all GTFS realtime entity to increase maximum value of primary key.
 
 #### Fixed:
-- Fix bug of duplicate trip data when inserting realtime data by removing @Async annotation to scheduler method and increase pool size value for task scheduler to make all scheduler run at the same time..
+- Fix bug of duplicate trip data when inserting realtime data by removing @Async annotation to scheduler method and increase pool size value for task scheduler to make all scheduler run at the same time.
 - Fix vehicle label data in Stop Monitoring API for null value.
 
 

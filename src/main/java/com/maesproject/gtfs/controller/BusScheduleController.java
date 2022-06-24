@@ -17,7 +17,7 @@ public class BusScheduleController {
     @Autowired
     private BusScheduleService busScheduleService;
 
-    @GetMapping(value = "/api/gtfs/busschedules", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/bus-schedules", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@RequestParam String routeShortName,
                                                  @RequestParam int directionId,
                                                  @RequestParam String dateCheck,

@@ -20,19 +20,19 @@ public class NextBusController {
     @Autowired
     private NextBusService nextBusService;
 
-    @GetMapping(value = "/api/gtfs/nextbus")
+    @GetMapping(value = "/api/gtfs/next-bus")
     public RedirectView checkParam(@RequestParam String param) {
         String result = nextBusService.checkParam(param);
         if (result.equals("route")) {
-            return new RedirectView("/api/gtfs/nextbus/route/" + param);
+            return new RedirectView("/api/gtfs/next-bus/route/" + param);
         } else if (result.equals("stop")) {
-            return new RedirectView("/api/gtfs/nextbus/stop/" + param);
+            return new RedirectView("/api/gtfs/next-bus/stop/" + param);
         } else {
-            return new RedirectView("/api/gtfs/nextbus/invalid");
+            return new RedirectView("/api/gtfs/next-bus/invalid");
         }
     }
 
-    @GetMapping(value = "/api/gtfs/nextbus/invalid", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/next-bus/invalid", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> invalid() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "error");
@@ -40,13 +40,13 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/nextbus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/next-bus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@PathVariable("route") String routeShortName) {
         Destination response = nextBusService.getDestinations(routeShortName);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/nextbus/route/{route}/direction/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/next-bus/route/{route}/direction/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getStop(@PathVariable("route") String routeShortName,
                                           @PathVariable("direction") int directionId) {
 
@@ -54,7 +54,7 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/nextbus/route/{route}/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/next-bus/stop/{stop}/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getNextDeparture(@PathVariable("route") String routeShortName,
                                                    @PathVariable("stop") String stopCode) {
 
@@ -62,7 +62,7 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/nextbus/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/gtfs/next-bus/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getNextDepartureByStop(@PathVariable("stop") String stopCode) {
         String response = nextBusService.getNextDepartureByStop(stopCode);
         return new ResponseEntity<>(response, HttpStatus.OK);

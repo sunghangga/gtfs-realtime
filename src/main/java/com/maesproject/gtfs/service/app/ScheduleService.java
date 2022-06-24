@@ -35,10 +35,8 @@ public class ScheduleService implements GlobalVariable {
     private String urlVehiclePosition;
     @Value("${url.alert}")
     private String urlAlert;
-    @Value("${delete.realtime.minus-day}")
-    private int minusDay;
-    @Value("${delete.realtime.minus-second}")
-    private int minusSecond;
+    @Value("${delete.realtime.minus.day-time}")
+    private String minusDayTime;
     @Value("${print.count-info}")
     private boolean printCountInfo;
     @Value("${timezone}")
@@ -90,7 +88,13 @@ public class ScheduleService implements GlobalVariable {
         try {
             // set timestamp parameter in seconds
             LocalDateTime now = LocalDateTime.now(ZoneId.of(timeZone));
-            LocalDateTime dateTimeToDelete = now.minusDays(minusDay).minusSeconds(minusSecond);
+            String[] arrayMinusDayTime = minusDayTime.split("-");
+            LocalDateTime dateTimeToDelete = now
+                    .minusDays(Integer.parseInt(arrayMinusDayTime[0]))
+                    .minusHours(Integer.parseInt(arrayMinusDayTime[1]))
+                    .minusMinutes(Integer.parseInt(arrayMinusDayTime[2]))
+                    .minusSeconds(Integer.parseInt(arrayMinusDayTime[3]));
+
             long timeInSeconds = dateTimeToDelete.atZone(ZoneId.of(timeZone)).toEpochSecond();
             String timeDelete = dateTimeToDelete.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
@@ -106,6 +110,7 @@ public class ScheduleService implements GlobalVariable {
                 Logger.info(resultAlert + " alert deleted");
             }
         } catch (Exception e) {
+            Logger.error("Cannot delete old realtime data!");
             Logger.error(e.getMessage());
         }
     }

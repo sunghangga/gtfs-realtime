@@ -36,6 +36,18 @@ public class NextBusService {
         return "";
     }
 
+    public String getAllRoutes() {
+        List<Tuple> routeList = nextBusRepository.getAllRoutes();
+        ArrayNode arrayRouteDeparture = new ObjectMapper().createArrayNode();
+        for (Tuple tuple : routeList) {
+            ObjectNode objectNode = new ObjectMapper().createObjectNode();
+            objectNode.put("routeShortName", tuple.get("route_short_name").toString());
+            objectNode.put("routeLongName", tuple.get("route_long_name").toString().replace("/", " / "));
+            arrayRouteDeparture.add(objectNode);
+        }
+        return arrayRouteDeparture.toString();
+    }
+
     public Destination getDestinations(String routeShortName) {
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName);
         String routeLongName = "";

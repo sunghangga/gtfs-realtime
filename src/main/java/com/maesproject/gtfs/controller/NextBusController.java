@@ -40,6 +40,12 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/api/gtfs/next-bus/route", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getRoute() {
+        String response = nextBusService.getAllRoutes();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/gtfs/next-bus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@PathVariable("route") String routeShortName) {
         Destination response = nextBusService.getDestinations(routeShortName);

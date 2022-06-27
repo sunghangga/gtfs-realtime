@@ -27,6 +27,16 @@ public class NextBusRepository {
         return Integer.parseInt(query.getSingleResult().toString());
     }
 
+    public List<Tuple> getAllRoutes() {
+        String sql = "select route_short_name, route_long_name\n" +
+                "from routes\n" +
+                "where route_short_name <> ''\n" +
+                "order by route_short_name";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
     public List<Tuple> getTripHeadSignByRoute(String routeShortName) {
         String sql = "select t.direction_id, t.trip_headsign, r.route_long_name\n" +
                 "from trips t\n" +

@@ -1,10 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+### Version [2.2.0] - 2022-06-27
+
+#### Added:
+- Add new API to get route list for next-bus
+
+
+---
+
+
 ### Version [2.1.1] - 2022-06-23
 
 #### Change:
 - Change delete-realtime function from using cron-expression to fixed-delay
+
 
 ---
 
@@ -16,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 #### Fixed:
 - Fix bug in query when getting next-scheduled time on next-bus API
+
 
 ---
 

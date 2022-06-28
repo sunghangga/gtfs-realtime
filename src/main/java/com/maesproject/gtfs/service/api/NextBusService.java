@@ -28,6 +28,19 @@ public class NextBusService {
     @Value("${timezone}")
     private String timeZone;
 
+    public String getRouteByRouteLongName(String routeLongName) {
+        if (routeLongName.isEmpty()) return "[]";
+        List<Tuple> routeList = nextBusRepository.getRouteByRouteLongName(routeLongName);
+        ArrayNode arrayNode = new ObjectMapper().createArrayNode();
+        for (Tuple tuple : routeList) {
+            ObjectNode objectNode = new ObjectMapper().createObjectNode();
+            objectNode.put("routeShortName", tuple.get("route_short_name").toString());
+            objectNode.put("routeLongName", tuple.get("route_long_name").toString());
+            arrayNode.add(objectNode);
+        }
+        return arrayNode.toString();
+    }
+
     public String checkParam(String param) {
         int result = nextBusRepository.countRoute(param);
         if (result > 0) return "route";
@@ -38,14 +51,14 @@ public class NextBusService {
 
     public String getAllRoutes() {
         List<Tuple> routeList = nextBusRepository.getAllRoutes();
-        ArrayNode arrayRouteDeparture = new ObjectMapper().createArrayNode();
+        ArrayNode arrayNode = new ObjectMapper().createArrayNode();
         for (Tuple tuple : routeList) {
             ObjectNode objectNode = new ObjectMapper().createObjectNode();
             objectNode.put("routeShortName", tuple.get("route_short_name").toString());
             objectNode.put("routeLongName", tuple.get("route_long_name").toString().replace("/", " / "));
-            arrayRouteDeparture.add(objectNode);
+            arrayNode.add(objectNode);
         }
-        return arrayRouteDeparture.toString();
+        return arrayNode.toString();
     }
 
     public Destination getDestinations(String routeShortName) {

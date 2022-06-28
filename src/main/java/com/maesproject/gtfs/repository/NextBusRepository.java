@@ -15,6 +15,17 @@ public class NextBusRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    public List<Tuple> getRouteByRouteLongName(String routeLongName) {
+        String sql = "select route_short_name, route_long_name\n" +
+                "from routes\n" +
+                "where route_short_name <> ''\n" +
+                "and lower(route_long_name) like '%" + routeLongName.toLowerCase() + "%'\n" +
+                "order by route_short_name";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
     public int countRoute(String routeShortName) {
         Query query = entityManager.createNativeQuery("select count(*) from routes where route_short_name = '" + routeShortName + "'");
         entityManager.close();

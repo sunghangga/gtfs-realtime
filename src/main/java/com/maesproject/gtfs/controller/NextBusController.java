@@ -20,6 +20,12 @@ public class NextBusController {
     @Autowired
     private NextBusService nextBusService;
 
+    @GetMapping(value = "/api/gtfs/next-bus/find", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> find(@RequestParam() String param) {
+        String response = nextBusService.getRouteByRouteLongName(param);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/gtfs/next-bus")
     public RedirectView checkParam(@RequestParam String param) {
         String result = nextBusService.checkParam(param);

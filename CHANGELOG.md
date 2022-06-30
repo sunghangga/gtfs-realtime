@@ -1,10 +1,22 @@
 # Change Log
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file
+
+### Version [2.3.0] - 2022-06-30
+
+#### Added:
+- Add new API for searching routes related to bus-schedules API.
+
+#### Change:
+- Change API url for bus-schedules, move parameter route and direction from body to url.
+- Change scheduled method for deleting old realtime data by waiting for insert process to finish before start deleting to prevent insert and delete the same data at the same time.
+
+---
+
 
 ### Version [2.2.0] - 2022-06-27
 
 #### Added:
-- Add new API to get route list for next-bus
+- Add new API to get route list for next-bus.
 
 
 ---
@@ -13,7 +25,7 @@ All notable changes to this project will be documented in this file.
 ### Version [2.1.1] - 2022-06-23
 
 #### Change:
-- Change delete-realtime function from using cron-expression to fixed-delay
+- Change delete-realtime function from using cron-expression to fixed-delay.
 
 
 ---
@@ -22,10 +34,10 @@ All notable changes to this project will be documented in this file.
 ### Version [2.1.0] - 2022-06-21
 
 #### Change:
-- Add departure delay seconds to predict departure time on next-bus API
+- Add departure delay seconds to predict departure time on next-bus API.
 
 #### Fixed:
-- Fix bug in query when getting next-scheduled time on next-bus API
+- Fix bug in query when getting next-scheduled time on next-bus API.
 
 
 ---
@@ -34,8 +46,8 @@ All notable changes to this project will be documented in this file.
 ### Version [2.0.0] - 2022-06-03
 
 #### Added:
-- Add API for next-bus
-- Add API for bus-schedule
+- Add API for next-bus.
+- Add API for bus-schedule.
 
 
 ---
@@ -44,8 +56,8 @@ All notable changes to this project will be documented in this file.
 ### Version [1.3.4] - 2022-05-06
 
 #### Change:
-- Disable feature for collecting vehicle id. Vehicle id data will be given by the user.
-- Change back spring.task.scheduling.pool.size value to 4
+- Disable feature for collecting vehicle id.
+- Change back spring.task.scheduling.pool.size value to 4.
 
 
 ---
@@ -54,10 +66,10 @@ All notable changes to this project will be documented in this file.
 ### Version [1.3.3] - 2022-04-20
 
 #### Added:
-- Add new scheduled function for collecting vehicle id
+- Add new scheduled function for collecting vehicle id.
 
 #### Change:
-- Change spring.task.scheduling.pool.size value to 5 for additional schedule
+- Change spring.task.scheduling.pool.size value to 5 for additional schedule.
 
 
 ---
@@ -66,7 +78,7 @@ All notable changes to this project will be documented in this file.
 ### Version [1.3.2] - 2022-04-18
 
 #### Changed:
-- Add parameter "approx" for API Stop-Monitoring
+- Add parameter "approx" for API Stop-Monitoring.
 
 
 ---

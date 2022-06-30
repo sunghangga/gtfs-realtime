@@ -28,17 +28,34 @@ public class NextBusService {
     @Value("${timezone}")
     private String timeZone;
 
-    public String getRouteByRouteLongName(String routeLongName) {
-        if (routeLongName.isEmpty()) return "[]";
-        List<Tuple> routeList = nextBusRepository.getRouteByRouteLongName(routeLongName);
-        ArrayNode arrayNode = new ObjectMapper().createArrayNode();
+    public String getRouteAndStopByParam(String param) {
+        ObjectNode objectResult = new ObjectMapper().createObjectNode();
+        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
+        ArrayNode arrayStop = new ObjectMapper().createArrayNode();
+
+        // find routes
+        LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+        String arrayServiceId = getAllActiveServiceId(tripStartDate);
+        List<Tuple> routeList = nextBusRepository.getRouteByParam(param, arrayServiceId);
         for (Tuple tuple : routeList) {
             ObjectNode objectNode = new ObjectMapper().createObjectNode();
             objectNode.put("routeShortName", tuple.get("route_short_name").toString());
             objectNode.put("routeLongName", tuple.get("route_long_name").toString());
-            arrayNode.add(objectNode);
+            arrayRoute.add(objectNode);
         }
-        return arrayNode.toString();
+
+        // find stops
+        List<Tuple> stopList = nextBusRepository.getStopByParam(param);
+        for (Tuple tuple : stopList) {
+            ObjectNode objectNode = new ObjectMapper().createObjectNode();
+            objectNode.put("stopCode", tuple.get("stop_code").toString());
+            objectNode.put("StopName", tuple.get("stop_name").toString());
+            arrayStop.add(objectNode);
+        }
+
+        objectResult.set("routes", arrayRoute);
+        objectResult.set("stops", arrayStop);
+        return objectResult.toString();
     }
 
     public String checkParam(String param) {
@@ -50,7 +67,9 @@ public class NextBusService {
     }
 
     public String getAllRoutes() {
-        List<Tuple> routeList = nextBusRepository.getAllRoutes();
+        LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+        String arrayServiceId = getAllActiveServiceId(tripStartDate);
+        List<Tuple> routeList = nextBusRepository.getAllRoutes(arrayServiceId);
         ArrayNode arrayNode = new ObjectMapper().createArrayNode();
         for (Tuple tuple : routeList) {
             ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -99,7 +118,7 @@ public class NextBusService {
     }
 
     public DestinationStop getDestinationStops(String routeShortName, int directionId) {
-        List<Tuple> stopList = nextBusRepository.getStop(routeShortName, directionId);
+        List<Tuple> stopList = nextBusRepository.getStopByRouteAndDirection(routeShortName, directionId);
         List<DestinationStop.StopCheck> stopCheckList = new ArrayList<>();
         for (Tuple tuple : stopList) {
             stopCheckList.add(new DestinationStop.StopCheck(
@@ -135,7 +154,6 @@ public class NextBusService {
         if (tripStartDate == null) return new StopDeparture();
 
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String dayOfWeek = tripStartDate.getDayOfWeek().name().toLowerCase();
 
         // get service id
         String arrayServiceId = getAllActiveServiceId(tripStartDate);
@@ -259,6 +277,15 @@ public class NextBusService {
         objectNode.set("departureSchedules", arrayRouteDeparture);
 
         return objectNode.toString();
+    }
+
+    public String getRealtimeTripStartDate() {
+        return "";
+    }
+
+    public String getTripStartDateWithoutDash(String stopCode) {
+        LocalDate tripStartDate = getTripStartDate(stopCode);
+        return tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 
     public LocalDate getTripStartDate(String stopCode) {

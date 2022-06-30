@@ -21,8 +21,8 @@ public class NextBusController {
     private NextBusService nextBusService;
 
     @GetMapping(value = "/api/gtfs/next-bus/find", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> find(@RequestParam() String param) {
-        String response = nextBusService.getRouteByRouteLongName(param);
+    public ResponseEntity<Object> getSuggestionRouteAndStop(@RequestParam String param) {
+        String response = nextBusService.getRouteAndStopByParam(param);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

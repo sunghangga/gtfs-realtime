@@ -13,6 +13,26 @@ public class BusScheduleRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    public List<Tuple> getRouteAndDirectionByParam(String param, String arrayServiceId) {
+        String sql = "select r.route_short_name, r.route_long_name, dne.direction_id, dne.direction_name\n" +
+                "from routes r\n" +
+                "join direction_names_exceptions dne on dne.route_name = r.route_short_name\n" +
+                "join trips t on t.route_id = r.route_id\n" +
+                "where r.route_short_name <> ''\n" +
+                "and r.route_type = '3'\n" +
+                "and (\n" +
+                "\tlower(route_short_name) like '%" + param.toLowerCase() + "%'\n" +
+                "\tor\n" +
+                "\tlower(route_long_name) like '%" + param.toLowerCase() + "%'\n" +
+                ")\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
+                "group by r.route_short_name, r.route_long_name, dne.direction_id, dne.direction_name\n" +
+                "order by r.route_short_name, dne.direction_id";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
     public List<Tuple> getStop(String routeShortName, int directionId) {
         String sql = "select s.stop_id, s.stop_code, s.stop_name\n" +
                 "from (\n" +
@@ -45,4 +65,13 @@ public class BusScheduleRepository {
         return query.getResultList();
     }
 
+    public List<Tuple> getDirectionByRoute(String routeShortName) {
+        String sql = "select direction_id, direction_name\n" +
+                "from public.direction_names_exceptions\n" +
+                "where route_name = '" + routeShortName + "'\n" +
+                "order by direction_id";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
 }

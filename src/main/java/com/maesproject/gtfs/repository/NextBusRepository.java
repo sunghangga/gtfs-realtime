@@ -15,12 +15,33 @@ public class NextBusRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<Tuple> getRouteByRouteLongName(String routeLongName) {
-        String sql = "select route_short_name, route_long_name\n" +
-                "from routes\n" +
-                "where route_short_name <> ''\n" +
-                "and lower(route_long_name) like '%" + routeLongName.toLowerCase() + "%'\n" +
-                "order by route_short_name";
+    public List<Tuple> getRouteByParam(String param, String arrayServiceId) {
+        String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
+                "from routes r\n" +
+                "join trips t on t.route_id = r.route_id\n" +
+                "where r.route_short_name <> ''\n" +
+                "and r.route_type = '3'\n" +
+                "and (\n" +
+                "\tlower(route_short_name) like '%" + param.toLowerCase() + "%'\n" +
+                "\tor\n" +
+                "\tlower(route_long_name) like '%" + param.toLowerCase() + "%'\n" +
+                ")\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
+                "order by r.route_short_name";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getStopByParam(String param) {
+        String sql = "select stop_code, stop_name\n" +
+                "from stops\n" +
+                "where stop_code <> ''\n" +
+                "and (\n" +
+                "\tlower(stop_code) like '%" + param.toLowerCase() + "%'\n" +
+                "\tor\n" +
+                "\tlower(stop_name) like '%" + param.toLowerCase() + "%'\n" +
+                "order by stop_code";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -38,11 +59,14 @@ public class NextBusRepository {
         return Integer.parseInt(query.getSingleResult().toString());
     }
 
-    public List<Tuple> getAllRoutes() {
-        String sql = "select route_short_name, route_long_name\n" +
-                "from routes\n" +
-                "where route_short_name <> ''\n" +
-                "order by route_short_name";
+    public List<Tuple> getAllRoutes(String arrayServiceId) {
+        String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
+                "from routes r\n" +
+                "join trips t on t.route_id = r.route_id\n" +
+                "where r.route_short_name <> ''\n" +
+                "and r.route_type = '3'\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
+                "order by r.route_short_name";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -71,7 +95,7 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getStop(String routeShortName, int directionId) {
+    public List<Tuple> getStopByRouteAndDirection(String routeShortName, int directionId) {
         String sql = "select s.stop_code, s.stop_name\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +

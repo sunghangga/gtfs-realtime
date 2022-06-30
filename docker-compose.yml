@@ -5,7 +5,7 @@ services:
         container_name: gtfs-realtime-app-test
         build: .
         ports:
-            - 8080:8080
+            - 8090:8080
         depends_on:
             - gtfs-db
         environment:
@@ -15,7 +15,7 @@ services:
             - SERVER_PORT=8080
             - FIXED_DELAY_CONSUME_REALTIME_MILLISECONDS=5000
             - FIXED_DELAY_DELETE_REALTIME_MILLISECONDS=120000
-            - DELETE_REALTIME_MINUS_DAY_TIME=0-0-5-0
+            - DELETE_REALTIME_MINUS_DAY_TIME=0-0-2-0
 
     gtfs-db:
         image: postgres

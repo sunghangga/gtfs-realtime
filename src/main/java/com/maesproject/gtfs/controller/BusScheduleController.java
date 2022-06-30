@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
@@ -17,12 +14,18 @@ public class BusScheduleController {
     @Autowired
     private BusScheduleService busScheduleService;
 
-    @GetMapping(value = "/api/gtfs/bus-schedules", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getDestination(@RequestParam String routeShortName,
-                                                 @RequestParam int directionId,
-                                                 @RequestParam String dateCheck,
-                                                 @RequestParam String startTime,
-                                                 @RequestParam String endTime) {
+    @GetMapping(value = "/api/gtfs/bus-schedules/find", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getSuggestionRoute(@RequestParam String param) {
+        String response = busScheduleService.getRouteByParam(param);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/gtfs/bus-schedules/route/{route}/direction/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getSchedulesByRouteAndDirection(@PathVariable("route") String routeShortName,
+                                                                  @PathVariable("direction") int directionId,
+                                                                  @RequestParam(required = false) String dateCheck,
+                                                                  @RequestParam(required = false) String startTime,
+                                                                  @RequestParam(required = false) String endTime) {
 
         BusSchedule response = busScheduleService.getBusSchedule(routeShortName, directionId, dateCheck, startTime, endTime);
         return new ResponseEntity<>(response, HttpStatus.OK);

@@ -20,6 +20,12 @@ public class NextBusController {
     @Autowired
     private NextBusService nextBusService;
 
+    @GetMapping(value = "/api/gtfs/next-bus/route", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getAllRoute() {
+        String response = nextBusService.getActiveRoutes();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/gtfs/next-bus/find", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getSuggestionRouteAndStop(@RequestParam String param) {
         String response = nextBusService.getRouteAndStopByParam(param);
@@ -46,12 +52,6 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/next-bus/route", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getRoute() {
-        String response = nextBusService.getAllRoutes();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
     @GetMapping(value = "/api/gtfs/next-bus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@PathVariable("route") String routeShortName) {
         Destination response = nextBusService.getDestinations(routeShortName);
@@ -67,8 +67,8 @@ public class NextBusController {
     }
 
     @GetMapping(value = "/api/gtfs/next-bus/stop/{stop}/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getNextDeparture(@PathVariable("route") String routeShortName,
-                                                   @PathVariable("stop") String stopCode) {
+    public ResponseEntity<Object> getNextDepartureByRouteAndStop(@PathVariable("route") String routeShortName,
+                                                                 @PathVariable("stop") String stopCode) {
 
         StopDeparture response = nextBusService.getNextDepartureByRouteAndStop(routeShortName, stopCode);
         return new ResponseEntity<>(response, HttpStatus.OK);

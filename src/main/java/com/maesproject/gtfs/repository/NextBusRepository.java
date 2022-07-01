@@ -59,7 +59,7 @@ public class NextBusRepository {
         return Integer.parseInt(query.getSingleResult().toString());
     }
 
-    public List<Tuple> getAllRoutes(String arrayServiceId) {
+    public List<Tuple> getActiveRoutes(String arrayServiceId) {
         String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +

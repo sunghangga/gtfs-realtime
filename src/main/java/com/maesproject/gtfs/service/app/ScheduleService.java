@@ -123,8 +123,7 @@ public class ScheduleService implements GlobalVariable {
             }
 
         } catch (Exception e) {
-            Logger.error("Cannot delete old realtime data!");
-            Logger.error(e.getMessage());
+            Logger.error("Cannot delete old realtime data! " + e.getMessage());
         }
     }
 

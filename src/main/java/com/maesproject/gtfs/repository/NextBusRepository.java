@@ -125,7 +125,7 @@ public class NextBusRepository {
         try {
             return LocalTime.parse(query.getSingleResult().toString());
         } catch (Exception e) {
-            Logger.error("Cannot find last departure time for stop '" + stopCode + "'!");
+            Logger.error("Cannot find last departure time for stop '" + stopCode + "'! " + e.getMessage());
             return null;
         }
     }

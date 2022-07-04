@@ -23,8 +23,7 @@ public class GtfsRealtimeConsumer {
                 feed = FeedMessage.parseFrom(url.openStream());
                 if (feed.getEntityList().isEmpty()) return lastTimestamp;
             } catch (IOException e) {
-//                Logger.error("Error while parsing GTFS data from " + feedUrl);
-//                Logger.error(e.getMessage());
+//                Logger.error("Error while parsing GTFS data from " + feedUrl + "! " + e.getMessage());
                 return lastTimestamp;
             }
 
@@ -49,8 +48,7 @@ public class GtfsRealtimeConsumer {
             initializeManager.initializeData(feed, feedUrl, type);
 
         } catch (Exception e) {
-            Logger.error("Error consuming GTFS feed from " + feedUrl);
-            Logger.error(e.getMessage());
+            Logger.error("Error consuming GTFS feed from " + feedUrl + "! " + e.getMessage());
         }
         return lastTimestamp;
     }

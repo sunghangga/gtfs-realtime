@@ -18,8 +18,7 @@ public class BusScheduleRepository {
                 "from routes r\n" +
                 "join direction_names_exceptions dne on dne.route_name = r.route_short_name\n" +
                 "join trips t on t.route_id = r.route_id\n" +
-                "where r.route_short_name <> ''\n" +
-                "and r.route_type = '3'\n" +
+                "where r.route_type = '3'\n" +
                 "and (\n" +
                 "\tlower(route_short_name) like '%" + param.toLowerCase() + "%'\n" +
                 "\tor\n" +

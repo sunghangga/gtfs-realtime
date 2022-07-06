@@ -1,9 +1,11 @@
 package com.maesproject.gtfs.repository;
 
-import com.maesproject.gtfs.util.Logger;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -19,8 +21,7 @@ public class NextBusRepository {
         String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +
-                "where r.route_short_name <> ''\n" +
-                "and r.route_type = '3'\n" +
+                "where r.route_type = '3'\n" +
                 "and (\n" +
                 "\tlower(route_short_name) like '%" + param.toLowerCase() + "%'\n" +
                 "\tor\n" +
@@ -63,8 +64,7 @@ public class NextBusRepository {
         String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +
-                "where r.route_short_name <> ''\n" +
-                "and r.route_type = '3'\n" +
+                "where r.route_type = '3'\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "order by r.route_short_name";
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
@@ -125,7 +125,6 @@ public class NextBusRepository {
         try {
             return LocalTime.parse(query.getSingleResult().toString());
         } catch (Exception e) {
-            Logger.error("Cannot find last departure time for stop '" + stopCode + "'! " + e.getMessage());
             return null;
         }
     }
@@ -176,7 +175,7 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDeparturePerTripHeadSignWithDelay(String routeShortName, String stopCode, String tripHeadSign, String serviceId, String dateWithoutDash, String timezone) {
+    public List<Tuple> getNextDeparturePerTripHeadSign(String routeShortName, String stopCode, String tripHeadSign, String serviceId, String dateWithoutDash, String timezone) {
         String sql = "select * from next_bus_by_trip_head_sign_with_delay('" + routeShortName + "', '" + stopCode + "', '" + tripHeadSign + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timezone + "')\n" +
                 "where rounded_minute_with_delay <= 120\n" +
                 "order by rounded_minute_with_delay\n" +
@@ -186,7 +185,7 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDeparturePerRouteWithDelay(String routeShortName, String stopCode, String serviceId, String dateWithoutDash, String timeZone) {
+    public List<Tuple> getNextDeparturePerRoute(String routeShortName, String stopCode, String serviceId, String dateWithoutDash, String timeZone) {
         String sql = "select * from next_bus_by_route_with_delay('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timeZone + "')\n" +
                 "where rounded_minute_with_delay <= 120\n" +
                 "order by rounded_minute_with_delay\n" +
@@ -196,8 +195,8 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public LocalDateTime getNextScheduledAfterLastTrip(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId, String date, String timeZone, String lastDepartureDateTime) {
-        String sql = "select (to_date('" + date + "', 'YYYYMMDD') + st.departure_time) as next_scheduled\n" +
+    public LocalDateTime getNextScheduledAfterLastTrip(String routeShortName, String tripHeadSign, String stopCode, String arrayServiceId, String dateWithoutDash, String timeZone, String lastDepartureDateTime) {
+        String sql = "select (to_date('" + dateWithoutDash + "', 'YYYYMMDD') + st.departure_time) as next_scheduled\n" +
                 "from stop_times st\n" +
                 "join trips t on t.trip_id = st.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +
@@ -212,10 +211,10 @@ public class NextBusRepository {
         }
 
         sql += "and t.service_id in (" + arrayServiceId + ") \n" +
-                "and (to_date('" + date + "', 'YYYYMMDD') + st.departure_time) >= timezone('" + timeZone + "', CURRENT_TIMESTAMP)\n";
+                "and (to_date('" + dateWithoutDash + "', 'YYYYMMDD') + st.departure_time) >= timezone('" + timeZone + "', CURRENT_TIMESTAMP)\n";
 
         if (!lastDepartureDateTime.isEmpty()) {
-            sql += "and (to_date('" + date + "', 'YYYYMMDD') + st.departure_time) > '" + lastDepartureDateTime + "'\n";
+            sql += "and (to_date('" + dateWithoutDash + "', 'YYYYMMDD') + st.departure_time) > '" + lastDepartureDateTime + "'\n";
         }
 
         sql += "order by st.departure_time\n" +

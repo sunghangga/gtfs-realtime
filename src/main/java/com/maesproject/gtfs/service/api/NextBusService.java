@@ -7,6 +7,7 @@ import com.maesproject.gtfs.entity.nextbus.Destination;
 import com.maesproject.gtfs.entity.nextbus.DestinationStop;
 import com.maesproject.gtfs.entity.nextbus.StopDeparture;
 import com.maesproject.gtfs.repository.NextBusRepository;
+import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -177,7 +178,7 @@ public class NextBusService {
             String lastDepartureDateTime = "";
 
             // get next departure
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSignWithDelay(routeShortName, stopCode, tripHeadSign, arrayServiceId, tripStartDateWithoutDash, timeZone);
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSign(routeShortName, stopCode, tripHeadSign, arrayServiceId, tripStartDateWithoutDash, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
                 if (departing.isEmpty()) {
@@ -241,7 +242,7 @@ public class NextBusService {
             String nextInfo = "";
             String lastDepartureDateTime = "";
 
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerRouteWithDelay(routeShortName, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
+            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerRoute(routeShortName, stopCode, arrayServiceId, tripStartDateWithoutDash, timeZone);
             for (Tuple tupleDeparture : nextDepartureList) {
                 lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
                 if (departing.isEmpty()) {
@@ -255,6 +256,9 @@ public class NextBusService {
                     nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute_with_delay") : nextInfo + ", " + tupleDeparture.get("rounded_minute_with_delay");
                 }
             }
+
+            // todo
+            // get departure time where schedule is above 12:00 PM (for trip more than 24 hour)
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
@@ -283,12 +287,13 @@ public class NextBusService {
         int add = 0;
         String nextSchedule = "";
         LocalDate tripStartDate = getTripStartDate(stopCode);
+        if (tripStartDate == null) return "";
         while (true) {
             LocalDate nextTripStartDate = tripStartDate.plusDays(add);
-            String date = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String dateCheck = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String arrayServiceId = getAllActiveServiceId(nextTripStartDate);
 
-            LocalDateTime nextScheduled = nextBusRepository.getNextScheduledAfterLastTrip(routeShortName, tripHeadSign, stopCode, arrayServiceId, date, timeZone, lastDepartureDateTime);
+            LocalDateTime nextScheduled = nextBusRepository.getNextScheduledAfterLastTrip(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateCheck, timeZone, lastDepartureDateTime);
             if (nextScheduled == null) {
                 add++;
                 if (add >= 30) break;
@@ -310,7 +315,10 @@ public class NextBusService {
 
         // get last departure time
         LocalTime lastDepartureTime = nextBusRepository.getLastDepartureTime(stopCode);
-        if (lastDepartureTime == null) return null;
+        if (lastDepartureTime == null) {
+            Logger.error("Cannot find last departure time for stop '" + stopCode + "'! ");
+            return null;
+        }
 
         // define trip start date
         LocalDate tripStartDate;

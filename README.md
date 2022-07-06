@@ -75,7 +75,7 @@ Other filter also available for the url such as **_stop_id_** and **_vehicle_id_
 > Otherwise, no data will be available for response since GTFS realtime data need to be joined with the GTFS static data in the query.
 > GTFS static data can be imported using [GTFS-Static app](https://bitbucket.org/sunghangga/gtfs-static-maestronic/src/master/).
 > There is also a [GTFS-Auto-Import app](https://bitbucket.org/sunghangga/gtfs-auto-import/src/master/) available for automatically importing the latest static data periodically.
-> With all three app running together, GTFS data will be up-to-date.
+> With all three app running together, GTFS data in database will always up-to-date.
 
 ## Docker
 
@@ -92,9 +92,9 @@ environment:
     - SPRING_DATASOURCE_USERNAME=username
     - SPRING_DATASOURCE_PASSWORD=password
     - SERVER_PORT=8080
-    - FIXEDDELAY_IN_MILLISECONDS=20000
-    - DELETE_REALTIME_START_DAY=1
-    - CRON_EXPRESSION_DELETE_REALTIME=@hourly
+    - FIXED_DELAY_CONSUME_REALTIME_MILLISECONDS=3000
+    - FIXED_DELAY_DELETE_REALTIME_MILLISECONDS=10000
+    - DELETE_REALTIME_MINUS_DAY_TIME=0-0-2-0
 ```
 
 Database service:

@@ -28,6 +28,8 @@ public class BusScheduleService {
     private String timeZone;
 
     public String getRouteByParam(String param) {
+        ObjectNode objectResult = new ObjectMapper().createObjectNode();
+        // find routes
         ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
         ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
         ObjectNode objectRoute = new ObjectMapper().createObjectNode();
@@ -59,7 +61,13 @@ public class BusScheduleService {
             }
             objectRoute.set("directions", arrayDirection);
         }
-        return arrayRoute.toString();
+        objectResult.set("routes", arrayRoute);
+
+        // find lines
+//        ArrayNode arrayLine = new ObjectMapper().createArrayNode();
+//        objectResult.set("lines", arrayLine);
+
+        return objectResult.toString();
     }
 
     public BusSchedule getBusSchedule(String routeShortName, int directionId, String dateCheck, String startTime, String endTime) {

@@ -151,7 +151,7 @@ public class NextBusService {
 
     public StopDeparture getNextDepartureByRouteAndStop(String routeShortName, String stopCode) {
         // find trip start date
-        LocalDate tripStartDate = getTripStartDate(stopCode);
+        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
         if (tripStartDate == null) return new StopDeparture();
 
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -165,7 +165,7 @@ public class NextBusService {
         List<StopDeparture.DepartureSchedule> departureScheduleList = new ArrayList<>();
 
         // get trip head sign
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndStop(routeShortName, stopCode);
+        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndStop(routeShortName, stopCode, arrayServiceId);
         for (Tuple tuple : tripHeadSignList) {
             // initial stop detail
             if (stopName.isEmpty()) stopName = tuple.get("stop_name").toString().replace("@", "at");
@@ -182,16 +182,21 @@ public class NextBusService {
             for (Tuple tupleDeparture : nextDepartureList) {
                 lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
                 if (departing.isEmpty()) {
-                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute_with_delay").toString());
+                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
                     if (depart <= 2) {
                         departing = "Now";
                     } else {
                         departing = depart + " Minutes";
                     }
                 } else {
-                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute_with_delay") : nextInfo + ", " + tupleDeparture.get("rounded_minute_with_delay");
+                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextInfo + ", " + tupleDeparture.get("rounded_minute");
                 }
             }
+
+
+            // todo
+            // if next less than 6 get departure time for tomorrow where schedule is above 12:00 PM (for trip more than 24 hour)
+
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
@@ -215,7 +220,7 @@ public class NextBusService {
 
     public String getNextDepartureByStop(String stopCode) {
         // find trip start date
-        LocalDate tripStartDate = getTripStartDate(stopCode);
+        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
         if (tripStartDate == null) {
             ObjectNode objectNode = new ObjectMapper().createObjectNode();
             objectNode.put("message", "No data available");
@@ -246,19 +251,21 @@ public class NextBusService {
             for (Tuple tupleDeparture : nextDepartureList) {
                 lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
                 if (departing.isEmpty()) {
-                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute_with_delay").toString());
+                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
                     if (depart <= 2) {
                         departing = "Now";
                     } else {
                         departing = depart + " Minutes";
                     }
                 } else {
-                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute_with_delay") : nextInfo + ", " + tupleDeparture.get("rounded_minute_with_delay");
+                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextInfo + ", " + tupleDeparture.get("rounded_minute");
                 }
             }
 
+
             // todo
-            // get departure time where schedule is above 12:00 PM (for trip more than 24 hour)
+            // if next less than 5 get departure time for tomorrow where schedule is above 12:00 PM (for trip more than 24 hour)
+
 
             if (nextInfo.isEmpty()) {
                 // find next scheduled time
@@ -286,7 +293,7 @@ public class NextBusService {
     public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String lastDepartureDateTime) {
         int add = 0;
         String nextSchedule = "";
-        LocalDate tripStartDate = getTripStartDate(stopCode);
+        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
         if (tripStartDate == null) return "";
         while (true) {
             LocalDate nextTripStartDate = tripStartDate.plusDays(add);
@@ -309,7 +316,7 @@ public class NextBusService {
         return nextSchedule;
     }
 
-    public LocalDate getTripStartDate(String stopCode) {
+    public LocalDate getTripStartDateByStop(String stopCode) {
         // check if ongoing trip is from today's trip or from yesterday's trip
         // by comparing current time to the latest departure time of the route/stop
 

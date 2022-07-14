@@ -260,6 +260,10 @@ public class InitializeManager implements GlobalVariable {
                 }
                 if (vehiclePosition.hasTimestamp()) {
                     vehiclePositionEntity.setTimestamp(vehiclePosition.getTimestamp());
+                } else {
+                    LocalDateTime currentTime = LocalDateTime.now(ZoneId.of(timeZone));
+                    long seconds = currentTime.atZone(ZoneId.of(timeZone)).toEpochSecond();
+                    vehiclePositionEntity.setTimestamp(seconds);
                 }
                 vehiclePositionEntity.setEntityId(entity.getId());
 
@@ -338,6 +342,10 @@ public class InitializeManager implements GlobalVariable {
                         }
                     }
                     alertEntity.setEntityId(entity.getId());
+
+                    LocalDateTime currentTime = LocalDateTime.now(ZoneId.of(timeZone));
+                    long seconds = currentTime.atZone(ZoneId.of(timeZone)).toEpochSecond();
+                    alertEntity.setTimestamp(seconds);
 
                     // find old data for this alert
                     List<AlertEntity> oldAlertList = alertRepository.findByEntityId(alertEntity.getEntityId());

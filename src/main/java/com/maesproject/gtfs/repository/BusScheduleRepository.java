@@ -73,4 +73,30 @@ public class BusScheduleRepository {
         entityManager.close();
         return query.getResultList();
     }
+
+    public List<Tuple> getAlertsByRoute(String routeShortName, long seconds) {
+        String sql = "select x.effect, x.start_timestamp, x.end_timestamp, x.header_text, x.timestamp\n" +
+                "from (\n" +
+                "\tselect\n" +
+                "\ta.effect,\n" +
+                "\tcast(to_timestamp(" + seconds + ") as date) as date_param,\n" +
+                "\tcast(to_timestamp(a.start) as date) as \"start_date\",\n" +
+                "\tcase when a.end = 0 then cast(to_timestamp(a.start) as date) else cast(to_timestamp(a.end) as date) end as \"end_date\",\n" +
+                "\tcast(to_timestamp(a.start) as timestamp) as start_timestamp,\n" +
+                "\tcase when a.end = 0 then null else cast(to_timestamp(a.end) as timestamp) end as \"end_timestamp\",\n" +
+                "\ta.header_text,\n" +
+                "\tcast(to_timestamp(a.timestamp) as timestamp) as \"timestamp\"\n" +
+                "\tfrom alerts a\n" +
+                "\tjoin entity_selectors es on es.alert_id = a.id\n" +
+                "\tjoin routes r on r.route_id = es.route_id\n" +
+                "\twhere es.route_type = '3'\n" +
+                "\tand r.route_short_name = '" + routeShortName + "'\n" +
+                "\torder by es.route_id\n" +
+                ") as x\n" +
+                "where x.date_param between x.start_date and x.end_date\n" +
+                "order by start_timestamp";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.Tuple;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -131,6 +132,29 @@ public class BusScheduleService {
             routeDirectionList.add(routeDirection);
         }
 
+        // get alerts
+        List<BusSchedule.AlertInfo> alertInfoList = new ArrayList<>();
+        long seconds = date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        List<Tuple> alertList = busScheduleRepository.getAlertsByRoute(routeShortName, seconds);
+        for (Tuple tuple : alertList) {
+            String startDate = tuple.get("start_timestamp").toString();
+            String endDate = tuple.get("end_timestamp") == null ? "unknown" : tuple.get("end_timestamp").toString();
+
+            LocalDateTime startInfo = LocalDateTime.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+            startDate = startInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
+
+            if (!endDate.equals("unknown")) {
+                LocalDateTime endInfo = LocalDateTime.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+                endDate = endInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
+            }
+
+            BusSchedule.AlertInfo alertInfo = new BusSchedule.AlertInfo();
+            alertInfo.setEffect(tuple.get("effect").toString());
+            alertInfo.setDuration(startDate + " - " + endDate);
+            alertInfo.setHeader(tuple.get("header_text").toString());
+            alertInfoList.add(alertInfo);
+        }
+
         BusSchedule busSchedule = new BusSchedule();
         busSchedule.setRouteShortName(routeShortName);
         busSchedule.setDirectionId(directionId);
@@ -139,6 +163,7 @@ public class BusScheduleService {
         busSchedule.setEndTime(endTime);
         busSchedule.setRouteDirections(routeDirectionList);
         busSchedule.setStopSchedules(stopScheduleList);
+        busSchedule.setAlerts(alertInfoList);
         return busSchedule;
     }
 }

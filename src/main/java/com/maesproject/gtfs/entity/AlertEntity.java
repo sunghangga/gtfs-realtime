@@ -31,4 +31,6 @@ public class AlertEntity {
     private String descriptionText;
     @Column(name = "entity_id")
     private String entityId;
+    @Column(name = "\"timestamp\"")
+    private long timestamp;
 }

@@ -29,6 +29,7 @@ public class NextBusRepository {
                 ")\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "order by r.route_short_name";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -44,6 +45,7 @@ public class NextBusRepository {
                 "\tlower(stop_name) like '%" + param.toLowerCase() + "%'\n" +
                 ")\n" +
                 "order by stop_code";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -68,6 +70,7 @@ public class NextBusRepository {
                 "where r.route_type = '3'\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "order by r.route_short_name";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -80,6 +83,7 @@ public class NextBusRepository {
                 "where r.route_short_name = '" + routeShortName + "'\n" +
                 "group by t.direction_id, t.trip_headsign, r.route_long_name\n" +
                 "order by t.direction_id";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -91,6 +95,7 @@ public class NextBusRepository {
                 "join routes r on r.route_id = t.route_id\n" +
                 "where r.route_short_name = '" + routeShortName + "'\n" +
                 "and t.direction_id = '" + directionId + "'";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -107,6 +112,7 @@ public class NextBusRepository {
                 "and r.route_short_name = '" + routeShortName + "'\n" +
                 "and t.direction_id = '" + directionId + "'\n" +
                 "group by s.stop_code, s.stop_name";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -121,6 +127,7 @@ public class NextBusRepository {
                 "where st.pickup_type is distinct from '1'\n" +
                 "and st.drop_off_type is distinct from '1'\n" +
                 "and s.stop_code = '" + stopCode + "'";
+
         Query query = entityManager.createNativeQuery(sql);
         entityManager.close();
         try {
@@ -149,6 +156,7 @@ public class NextBusRepository {
                 "\twhere date = '" + dateWithoutDash + "'\n" +
                 "\tand exception_type <> '2'\n" +
                 ")";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -166,6 +174,7 @@ public class NextBusRepository {
                 "and s.stop_code = '" + stopCode + "'\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "order by t.trip_headsign";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -179,26 +188,29 @@ public class NextBusRepository {
                 "join routes r on r.route_id = t.route_id\n" +
                 "where s.stop_code = '" + stopCode + "'\n" +
                 "order by r.route_short_name";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDeparturePerTripHeadSign(String routeShortName, String stopCode, String tripHeadSign, String serviceId, String dateWithoutDash, String timezone) {
-        String sql = "select * from next_bus_by_trip_head_sign('" + routeShortName + "', '" + stopCode + "', '" + tripHeadSign + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timezone + "')\n" +
+    public List<Tuple> getNextDeparturePerTripHeadSign(String routeShortName, String stopCode, String tripHeadSign, String arrayServiceId, String dateWithoutDash, String timezone) {
+        String sql = "select * from next_bus_by_trip_head_sign('" + routeShortName + "', '" + stopCode + "', '" + tripHeadSign + "', array[" + arrayServiceId + "], '" + dateWithoutDash + "', '" + timezone + "')\n" +
                 "where rounded_minute <= 120\n" +
                 "order by rounded_minute\n" +
                 "limit 6";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
     }
 
-    public List<Tuple> getNextDeparturePerRoute(String routeShortName, String stopCode, String serviceId, String dateWithoutDash, String timeZone) {
-        String sql = "select * from next_bus_by_route('" + routeShortName + "', '" + stopCode + "', array[" + serviceId + "], '" + dateWithoutDash + "', '" + timeZone + "')\n" +
+    public List<Tuple> getNextDeparturePerRoute(String routeShortName, String stopCode, String arrayServiceId, String dateWithoutDash, String timeZone) {
+        String sql = "select * from next_bus_by_route('" + routeShortName + "', '" + stopCode + "', array[" + arrayServiceId + "], '" + dateWithoutDash + "', '" + timeZone + "')\n" +
                 "where rounded_minute <= 120\n" +
                 "order by rounded_minute\n" +
                 "limit 5";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -236,6 +248,83 @@ public class NextBusRepository {
             return LocalDateTime.parse(tuple.get("next_scheduled").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
         }
         return null;
+    }
+
+    public List<Tuple> getStopInfo(String stopCode) {
+        String sql = "select stop_name, stop_lat, stop_lon\n" +
+                "from stops\n" +
+                "where stop_code = '" + stopCode + "'";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getMapDepartureTimeByStop(String stopCode, String routeShortName, String arrayServiceId, String dateWithoutDash, String timeZone) {
+        String sql = "select * from next_bus_map_by_stop('" + stopCode + "', array[" + arrayServiceId + "], '" + dateWithoutDash + "', '" + timeZone + "')\n" +
+                "where rounded_minute <= 120\n";
+        if (!routeShortName.isEmpty()) {
+            sql += "and route_short_name = '" + routeShortName + "'\n";
+        }
+        sql += "order by route_short_name, rounded_minute\n" +
+                "";
+
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getMapVehicle(String stopCode, String routeShortName, String timeZone) {
+        String sql = "select r.route_short_name, t.trip_headsign, vp.vehicle_label, vp.position_latitude, vp.position_longitude, \n" +
+                "timezone('" + timeZone + "', to_timestamp(vp.timestamp)) as \"timestamp\"\n" +
+                "from vehicle_positions vp\n" +
+                "join routes r on r.route_id = vp.route_id\n" +
+                "join trips t on t.trip_id = vp.trip_id\n" +
+                "where vp.trip_id in (\n" +
+                "\tselect distinct(t.trip_id)\n" +
+                "\tfrom trips t\n" +
+                "\tjoin stop_times st on st.trip_id = t.trip_id\n" +
+                "\tjoin stops s on s.stop_id = st.stop_id\n" +
+                "\tjoin routes r on r.route_id = t.route_id\n" +
+                "\twhere r.route_type = '3'\n";
+
+        if (!stopCode.isEmpty()) {
+            sql += "\tand s.stop_code = '" + stopCode + "'\n";
+        }
+
+        if (!routeShortName.isEmpty()) {
+            sql += "\tand r.route_short_name = '" + routeShortName + "'\n";
+        }
+
+        sql += ")\n" +
+                "order by r.route_short_name, t.trip_headsign, vp.timestamp";
+
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getMapRoutePath(String stopCode, String routeShortName) {
+        String sql = "select sh.*\n" +
+                "from shapes sh\n" +
+                "where sh.shape_id in (\n" +
+                "\tselect distinct(t.shape_id)\n" +
+                "\tfrom trips t\n" +
+                "\tjoin routes r on r.route_id = t.route_id\n" +
+                "\tjoin stop_times st on st.trip_id = t.trip_id\n" +
+                "\tjoin stops s on s.stop_id = st.stop_id\n" +
+                "\twhere r.route_type = '3'\n" +
+                "\tand r.route_short_name = '" + routeShortName + "'\n";
+
+        if (!stopCode.isEmpty()) {
+            sql += "\tand s.stop_code = '" + stopCode + "'\n";
+        }
+
+        sql += ")\n" +
+                "order by sh.shape_id, sh.shape_pt_sequence";
+
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
     }
 
 }

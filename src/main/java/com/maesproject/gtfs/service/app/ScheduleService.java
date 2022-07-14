@@ -152,7 +152,7 @@ public class ScheduleService implements GlobalVariable {
         }
 
         if (dataType.equals(GTFS_ALERT)) {
-            int resultAlert = alertRepository.deleteByEndLessThan(timeInSeconds);
+            int resultAlert = alertRepository.deleteByTimestampLessThan(timeInSeconds);
             mapResult.put("alertTimeDelete", timeDelete);
             mapResult.put("alertDeleteCount", "" + resultAlert);
         }

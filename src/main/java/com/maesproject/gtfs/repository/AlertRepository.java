@@ -15,5 +15,5 @@ public interface AlertRepository extends JpaRepository<AlertEntity, Long> {
     int deleteByIdIn(List<Long> alertIdList);
 
     @Transactional
-    int deleteByEndLessThan(long timestampSeconds);
+    int deleteByTimestampLessThan(long timestampSeconds);
 }

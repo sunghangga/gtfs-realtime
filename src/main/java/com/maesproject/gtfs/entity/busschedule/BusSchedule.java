@@ -15,6 +15,7 @@ public class BusSchedule {
     private String endTime;
     private List<RouteDirection> routeDirections;
     private List<StopSchedule> stopSchedules;
+    private List<AlertInfo> alerts;
 
     @Data
     @NoArgsConstructor
@@ -29,5 +30,13 @@ public class BusSchedule {
         private String stopCode;
         private String stopName;
         private List<String> arrivalTimes;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class AlertInfo {
+        private String effect;
+        private String duration;
+        private String header;
     }
 }

@@ -109,24 +109,17 @@ public class NextBusMapService {
     public String getMapDepartureTimeByStop(String stopCode) {
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
 
-        // set stop info
-        ObjectNode objectStop = new ObjectMapper().createObjectNode();
-        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
-        for (Tuple tuple : stopInfo) {
-            objectStop.put("stopName", tuple.get("stop_name").toString());
-            objectStop.put("stopCode", stopCode);
-            objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
-            objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
-        }
-        objectNode.set("stopInfo", objectStop);
+        // get stop info
+        ObjectNode objectStop = getObjectStopInfo(stopCode);
+        objectNode.set("stop", objectStop);
 
-        // set next departure time info
+        // get next departure time info
         ArrayNode arrayRoute = getArrayDepartureList(stopCode);
-        objectNode.set("routeDepartures", arrayRoute);
+        objectNode.set("departures", arrayRoute);
 
-        // set vehicle list
+        // get vehicle list
         ArrayNode arrayVehicle = getArrayVehicleList(stopCode, "");
-        objectNode.set("vehiclesList", arrayVehicle);
+        objectNode.set("vehicles", arrayVehicle);
 
         return objectNode.toString();
     }
@@ -134,28 +127,21 @@ public class NextBusMapService {
     public String getMapDepartureTimeByStopAndRoute(String stopCode, String routeShortName) {
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
 
-        // set stop info
-        ObjectNode objectStop = new ObjectMapper().createObjectNode();
-        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
-        for (Tuple tuple : stopInfo) {
-            objectStop.put("stopName", tuple.get("stop_name").toString());
-            objectStop.put("stopCode", stopCode);
-            objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
-            objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
-        }
-        objectNode.set("stopInfo", objectStop);
+        // get stop info
+        ObjectNode objectStop = getObjectStopInfo(stopCode);
+        objectNode.set("stop", objectStop);
 
-        // set next departure time info
+        // get next departure time info
         ArrayNode arrayRoute = getArrayDepartureList(stopCode);
-        objectNode.set("routeDepartures", arrayRoute);
+        objectNode.set("departures", arrayRoute);
 
-        // set vehicle list
+        // get vehicle list
         ArrayNode arrayVehicle = getArrayVehicleList(stopCode, routeShortName);
-        objectNode.set("vehiclesList", arrayVehicle);
+        objectNode.set("vehicles", arrayVehicle);
 
-        // set route path list
+        // get route path list
         ArrayNode arrayRoutePathList = getArrayShapeList(stopCode, routeShortName);
-        objectNode.set("routePathList", arrayRoutePathList);
+        objectNode.set("routePaths", arrayRoutePathList);
 
         return objectNode.toString();
     }
@@ -169,10 +155,22 @@ public class NextBusMapService {
 
         // set object value
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
-        objectNode.set("vehiclesList", arrayVehicle);
-        objectNode.set("routePathList", arrayRoutePathList);
+        objectNode.set("vehicles", arrayVehicle);
+        objectNode.set("routePaths", arrayRoutePathList);
 
         return objectNode.toString();
+    }
+
+    public ObjectNode getObjectStopInfo(String stopCode) {
+        ObjectNode objectStop = new ObjectMapper().createObjectNode();
+        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
+        for (Tuple tuple : stopInfo) {
+            objectStop.put("stopName", tuple.get("stop_name").toString());
+            objectStop.put("stopCode", stopCode);
+            objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
+            objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
+        }
+        return objectStop;
     }
 
     public ArrayNode getArrayDepartureList(String stopCode) {
@@ -186,8 +184,16 @@ public class NextBusMapService {
         // get active service id
         String arrayServiceId = nextBusService.getAllActiveServiceId(tripStartDate);
 
+        // set next trip start date and service id
+        LocalDate nextTripStartDate = tripStartDate.plusDays(1);
+        String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String arrayNextServiceId = nextBusService.getAllActiveServiceId(nextTripStartDate);
+
+        String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
+        String[] arrayServiceIdUnion = {arrayServiceId, arrayNextServiceId};
+
         String routeShortNameCheck = "";
-        List<Tuple> nextDepartureList = nextBusRepository.getMapDepartureTimeByStop(stopCode, "", arrayServiceId, tripStartDateWithoutDash, timeZone);
+        List<Tuple> nextDepartureList = nextBusRepository.getMapDepartureTimeByStopUnion(stopCode, "", arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
         for (Tuple tupleRoute : nextDepartureList) {
             String route = tupleRoute.get("route_short_name").toString();
             if (routeShortNameCheck.equals(route)) continue;
@@ -197,14 +203,17 @@ public class NextBusMapService {
             objectRoute.put("routeShortName", routeShortNameCheck);
 
             String next = "";
+            int nextCount = 0;
             for (Tuple tupleMinute : nextDepartureList) {
                 if (!routeShortNameCheck.equals(tupleMinute.get("route_short_name").toString())) continue;
 
                 String minute = tupleMinute.get("rounded_minute").toString();
                 int minuteNumber = Integer.parseInt(minute);
                 next = next.isEmpty() ? (minuteNumber > 2 ? minute : "Now") : (next + ", " + minute);
+                nextCount++;
+                if (nextCount == 5) break;
             }
-            objectRoute.put("departure", next);
+            objectRoute.put("departure", next + " min");
 
             arrayRoute.add(objectRoute);
         }
@@ -224,6 +233,7 @@ public class NextBusMapService {
             objectVehicle.put("positionLatitude", Double.parseDouble(tupleVehicle.get("position_latitude").toString()));
             objectVehicle.put("positionLongitude", Double.parseDouble(tupleVehicle.get("position_longitude").toString()));
             objectVehicle.put("timestamp", timestamp.toLocalTime().format(DateTimeFormatter.ofPattern("hh:mm:ss a")).toLowerCase());
+
             arrayVehicle.add(objectVehicle);
         }
         return arrayVehicle;
@@ -239,6 +249,7 @@ public class NextBusMapService {
             shapeId = tupleShapeId.get("shape_id").toString();
 
             ObjectNode objectShape = new ObjectMapper().createObjectNode();
+            objectShape.put("routeShortName", tupleShapeId.get("route_short_name").toString());
             objectShape.put("shapeId", shapeId);
 
             ArrayNode arrayShapeDetail = new ObjectMapper().createArrayNode();
@@ -253,7 +264,7 @@ public class NextBusMapService {
 
                 arrayShapeDetail.add(objectShapeDetail);
             }
-            objectShape.set("detail", arrayShapeDetail);
+            objectShape.set("coordinates", arrayShapeDetail);
 
             arrayShape.add(objectShape);
         }

@@ -134,7 +134,7 @@ public class NextBusService {
             stopCheckList.add(new DestinationStop.StopCheck(stopCode, stopName));
         }
 
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteDirection(routeShortName, directionId);
+        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId);
         String combinedTripHeadSign = "";
         for (Tuple tuple : tripHeadSignList) {
             String tripHeadSign = tuple.get("trip_headsign").toString();
@@ -195,9 +195,6 @@ public class NextBusService {
                 }
             }
 
-
-            // todo
-            // if next value less than 5 get departure time for tomorrow where schedule is above 12:00 PM (for trip more than 24 hour)
             if (countNextValue < 5) {
                 LocalDate nextTripStartDate = tripStartDate.plusDays(1);
                 String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -291,8 +288,6 @@ public class NextBusService {
                 }
             }
 
-            // todo
-            // if next value less than 4 get departure time for tomorrow where schedule is above 12:00 PM (for trip more than 24 hour)
             if (countNextValue < 4) {
                 LocalDate nextTripStartDate = tripStartDate.plusDays(1);
                 String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));

@@ -84,31 +84,7 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/gtfs/next-bus/map", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getMapDepartureTime(@RequestParam(name = "stop", defaultValue = "") String stopCode,
-                                                      @RequestParam(name = "route", defaultValue = "") String routeShortName) {
-        if (routeShortName.isEmpty() && stopCode.isEmpty()) {
-            String response = "{" +
-                    "\"message\": \"Please input parameter for stop code or route short name or both!\"," +
-                    "\"status\": \"OK\"" +
-                    "}";
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-
-        if (stopCode.isEmpty()) {
-            String response = nextBusMapService.getMapVehicleRoutePath(routeShortName);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-
-        if (routeShortName.isEmpty()) {
-            String response = nextBusMapService.getMapDepartureTimeByStop(stopCode);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-
-        String response = nextBusMapService.getMapDepartureTimeByStopAndRoute(stopCode, routeShortName);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
+    // ========== API MAP TYPE ==========
     @GetMapping(value = "/api/gtfs/next-bus/map/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getMapDepartureTimeByStop(@PathVariable("stop") String stopCode) {
         String response = nextBusMapService.getMapDepartureTimeByStop(stopCode);

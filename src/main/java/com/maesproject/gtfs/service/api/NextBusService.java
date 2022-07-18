@@ -3,9 +3,6 @@ package com.maesproject.gtfs.service.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.maesproject.gtfs.entity.nextbus.Destination;
-import com.maesproject.gtfs.entity.nextbus.DestinationStop;
-import com.maesproject.gtfs.entity.nextbus.StopDeparture;
 import com.maesproject.gtfs.repository.NextBusRepository;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,11 +26,8 @@ public class NextBusService {
     private String timeZone;
 
     public String getRouteAndStopByParam(String param) {
-        ObjectNode objectResult = new ObjectMapper().createObjectNode();
-        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
-        ArrayNode arrayStop = new ObjectMapper().createArrayNode();
-
         // find routes
+        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
         LocalDate dateCheck = LocalDate.now(ZoneId.of(timeZone));
         String arrayServiceId = getAllActiveServiceId(dateCheck);
         List<Tuple> routeList = nextBusRepository.getRouteByParam(param, arrayServiceId);
@@ -46,6 +39,7 @@ public class NextBusService {
         }
 
         // find stops
+        ArrayNode arrayStop = new ObjectMapper().createArrayNode();
         List<Tuple> stopList = nextBusRepository.getStopByParam(param);
         for (Tuple tuple : stopList) {
             ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -54,6 +48,7 @@ public class NextBusService {
             arrayStop.add(objectNode);
         }
 
+        ObjectNode objectResult = new ObjectMapper().createObjectNode();
         objectResult.set("routes", arrayRoute);
         objectResult.set("stops", arrayStop);
         return objectResult.toString();
@@ -81,46 +76,41 @@ public class NextBusService {
         return arrayNode.toString();
     }
 
-    public Destination getDestinations(String routeShortName) {
+    public String getDestinations(String routeShortName) {
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName);
+        ArrayNode arrayDestination = new ObjectMapper().createArrayNode();
         String routeLongName = "";
-        List<Integer> directionList = new ArrayList<>();
+        String directionCheck = "";
         for (Tuple tuple : tripHeadSignList) {
-            if (routeLongName.isEmpty()) {
-                routeLongName = tuple.get("route_long_name").toString();
-            }
-            int direction = Integer.parseInt(tuple.get("direction_id").toString());
-            if (!directionList.contains(direction)) {
-                directionList.add(direction);
-            }
-        }
+            if (routeLongName.isEmpty()) routeLongName = tuple.get("route_long_name").toString();
 
-        List<Destination.DestinationTrip> destinationTripList = new ArrayList<>();
-        for (int i : directionList) {
-            Destination.DestinationTrip destinationTrip = new Destination.DestinationTrip();
+            String direction = tuple.get("direction_id").toString();
+            if (directionCheck.equals(direction)) continue;
+            else directionCheck = direction;
+
             String combinedTripHeadSign = "";
-            for (Tuple tuple : tripHeadSignList) {
-                int direction = Integer.parseInt(tuple.get("direction_id").toString());
-                if (direction == i) {
-                    String tripHeadSign = tuple.get("trip_headsign").toString();
-                    combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
-                }
+            for (Tuple tupleDirection : tripHeadSignList) {
+                if (!direction.equals(tupleDirection.get("direction_id").toString())) continue;
+
+                String tripHeadSign = tupleDirection.get("trip_headsign").toString();
+                combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
             }
-            destinationTrip.setCombinedTripHeadSign(combinedTripHeadSign);
-            destinationTrip.setDirectionId(i);
-            destinationTripList.add(destinationTrip);
+            ObjectNode objectDestination = new ObjectMapper().createObjectNode();
+            objectDestination.put("combinedTripHeadSign", combinedTripHeadSign);
+            objectDestination.put("directionId", direction);
+            arrayDestination.add(objectDestination);
         }
 
-        Destination destination = new Destination();
-        destination.setRouteShortName(routeShortName);
-        destination.setRouteLongName(routeLongName);
-        destination.setDestinationTrips(destinationTripList);
-        return destination;
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.put("routeShortName", routeShortName);
+        objectNode.put("routeLongName", routeLongName);
+        objectNode.set("destinationTrips", arrayDestination);
+        return objectNode.toString();
     }
 
-    public DestinationStop getDestinationStops(String routeShortName, int directionId) {
+    public String getDestinationStops(String routeShortName, int directionId) {
         List<Tuple> stopList = nextBusRepository.getStopByRouteAndDirection(routeShortName, directionId);
-        List<DestinationStop.StopCheck> stopCheckList = new ArrayList<>();
+        ArrayNode arrayStop = new ObjectMapper().createArrayNode();
         for (Tuple tuple : stopList) {
             String stopCode = tuple.get("stop_code").toString();
             String stopName = tuple.get("stop_name").toString()
@@ -131,7 +121,10 @@ public class NextBusService {
                     .replace("Southbound", "")
                     .trim();
 
-            stopCheckList.add(new DestinationStop.StopCheck(stopCode, stopName));
+            ObjectNode objectStop = new ObjectMapper().createObjectNode();
+            objectStop.put("stopCode", stopCode);
+            objectStop.put("stopName", stopName);
+            arrayStop.add(objectStop);
         }
 
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId);
@@ -141,18 +134,22 @@ public class NextBusService {
             combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
         }
 
-        DestinationStop destinationStop = new DestinationStop();
-        destinationStop.setRouteShortName(routeShortName);
-        destinationStop.setCombinedTripHeadSign(combinedTripHeadSign);
-        destinationStop.setOppositeDirection((directionId == 0) ? 1 : 0);
-        destinationStop.setStopChecks(stopCheckList);
-        return destinationStop;
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.put("routeShortName", routeShortName);
+        objectNode.put("combinedTripHeadSign", combinedTripHeadSign);
+        objectNode.put("oppositeDirection", directionId == 0 ? 1 : 0);
+        objectNode.set("stopChecks", arrayStop);
+        return objectNode.toString();
     }
 
-    public StopDeparture getNextDepartureByRouteAndStop(String routeShortName, String stopCode) {
+    public String getNextDepartureByRouteAndStop(String routeShortName, String stopCode) {
         // find trip start date
         LocalDate tripStartDate = getTripStartDateByStop(stopCode);
-        if (tripStartDate == null) return new StopDeparture();
+        if (tripStartDate == null) {
+            ObjectNode objectNode = new ObjectMapper().createObjectNode();
+            objectNode.put("message", "No data available");
+            return objectNode.toString();
+        }
 
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
@@ -161,8 +158,8 @@ public class NextBusService {
 
         String stopName = "";
         String routeLongName = "";
-        int directionId = 9999;
-        List<StopDeparture.DepartureSchedule> departureScheduleList = new ArrayList<>();
+        String directionId = "";
+        ArrayNode arrayDeparture = new ObjectMapper().createArrayNode();
 
         // get trip head sign
         List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndStop(routeShortName, stopCode, arrayServiceId);
@@ -170,7 +167,7 @@ public class NextBusService {
             // initial stop detail
             if (stopName.isEmpty()) stopName = tuple.get("stop_name").toString().replace("@", "at");
             if (routeLongName.isEmpty()) routeLongName = tuple.get("route_long_name").toString();
-            if (directionId == 9999) directionId = Integer.parseInt(tuple.get("direction_id").toString());
+            if (directionId.isEmpty()) directionId = tuple.get("direction_id").toString();
 
             String tripHeadSign = tuple.get("trip_headsign").toString();
             String departing = "";
@@ -225,17 +222,21 @@ public class NextBusService {
                 nextInfo = nextInfo + " min";
             }
 
-            departureScheduleList.add(new StopDeparture.DepartureSchedule(tripHeadSign, departing, nextInfo));
+            ObjectNode objectDeparture = new ObjectMapper().createObjectNode();
+            objectDeparture.put("tripHeadSign", tripHeadSign);
+            objectDeparture.put("departing", departing);
+            objectDeparture.put("next", nextInfo);
+            arrayDeparture.add(objectDeparture);
         }
 
-        StopDeparture stopDeparture = new StopDeparture();
-        stopDeparture.setStopName(stopName);
-        stopDeparture.setStopCode(stopCode);
-        stopDeparture.setRouteShortName(routeShortName);
-        stopDeparture.setRouteLongName(routeLongName);
-        stopDeparture.setDirectionId(directionId);
-        stopDeparture.setDepartureSchedules(departureScheduleList);
-        return stopDeparture;
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.put("stopName", stopName);
+        objectNode.put("stopCode", stopCode);
+        objectNode.put("routeShortName", routeShortName);
+        objectNode.put("routeLongName", routeLongName);
+        objectNode.put("directionId", Integer.parseInt(directionId));
+        objectNode.set("departureSchedules", arrayDeparture);
+        return objectNode.toString();
     }
 
     public String getNextDepartureByStop(String stopCode) {
@@ -380,8 +381,8 @@ public class NextBusService {
             // using yesterday trip start date
             tripStartDate = LocalDate.now(ZoneId.of(timeZone)).minusDays(1);
         }
-        System.out.println();
-        System.out.println(tripStartDate);
+//        System.out.println();
+//        System.out.println(tripStartDate);
         return tripStartDate;
     }
 

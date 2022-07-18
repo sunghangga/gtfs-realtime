@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file
 
+### Version [2.4.0] - 2022-07-18
+
+#### Added:
+- Add 3 new API for next-bus in map type.
+
+
+---
+
+
 ### Version [2.3.0] - 2022-06-30
 
 #### Added:
@@ -9,6 +18,7 @@ All notable changes to this project will be documented in this file
 #### Change:
 - Change API url for bus-schedules, move parameter route and direction from body to url.
 - Change scheduled method for deleting old realtime data by waiting for insert process to finish before start deleting to prevent insert and delete the same data at the same time.
+
 
 ---
 

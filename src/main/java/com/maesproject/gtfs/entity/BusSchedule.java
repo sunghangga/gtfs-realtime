@@ -1,4 +1,4 @@
-package com.maesproject.gtfs.entity.busschedule;
+package com.maesproject.gtfs.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

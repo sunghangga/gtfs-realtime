@@ -1,8 +1,5 @@
 package com.maesproject.gtfs.controller;
 
-import com.maesproject.gtfs.entity.nextbus.Destination;
-import com.maesproject.gtfs.entity.nextbus.DestinationStop;
-import com.maesproject.gtfs.entity.nextbus.StopDeparture;
 import com.maesproject.gtfs.service.api.NextBusMapService;
 import com.maesproject.gtfs.service.api.NextBusService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,23 +55,21 @@ public class NextBusController {
 
     @GetMapping(value = "/api/gtfs/next-bus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getDestination(@PathVariable("route") String routeShortName) {
-        Destination response = nextBusService.getDestinations(routeShortName);
+        String response = nextBusService.getDestinations(routeShortName);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/gtfs/next-bus/route/{route}/direction/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getStop(@PathVariable("route") String routeShortName,
-                                          @PathVariable("direction") int directionId) {
-
-        DestinationStop response = nextBusService.getDestinationStops(routeShortName, directionId);
+    public ResponseEntity<Object> getDestinationStops(@PathVariable("route") String routeShortName,
+                                                      @PathVariable("direction") int directionId) {
+        String response = nextBusService.getDestinationStops(routeShortName, directionId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/gtfs/next-bus/stop/{stop}/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getNextDepartureByRouteAndStop(@PathVariable("route") String routeShortName,
                                                                  @PathVariable("stop") String stopCode) {
-
-        StopDeparture response = nextBusService.getNextDepartureByRouteAndStop(routeShortName, stopCode);
+        String response = nextBusService.getNextDepartureByRouteAndStop(routeShortName, stopCode);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -84,7 +79,8 @@ public class NextBusController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // ========== API MAP TYPE ==========
+    // ==================== API MAP TYPE ====================
+
     @GetMapping(value = "/api/gtfs/next-bus/map/stop/{stop}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getMapDepartureTimeByStop(@PathVariable("stop") String stopCode) {
         String response = nextBusMapService.getMapDepartureTimeByStop(stopCode);
@@ -100,7 +96,7 @@ public class NextBusController {
 
     @GetMapping(value = "/api/gtfs/next-bus/map/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getMapVehicleRoutePath(@PathVariable("route") String routeShortName) {
-        String response = nextBusMapService.getMapVehicleRoutePath(routeShortName);
+        String response = nextBusMapService.getMapVehicleAndRoutePath(routeShortName);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

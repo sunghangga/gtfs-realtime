@@ -3,7 +3,7 @@ package com.maesproject.gtfs.service.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.maesproject.gtfs.entity.busschedule.BusSchedule;
+import com.maesproject.gtfs.entity.BusSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

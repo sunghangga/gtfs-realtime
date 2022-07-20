@@ -1,10 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file
 
-### Version [2.4.0] - 2022-07-18
+### Version [2.4.0] - 2022-07-19
 
 #### Added:
 - Add 3 new API for next-bus in map type.
+
+#### Change:
+- Include next-bus departure schedule from the next 24-hour trip to the API result as long as the next schedule is less than 2 hour.
 
 
 ---

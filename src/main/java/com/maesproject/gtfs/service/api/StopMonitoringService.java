@@ -24,7 +24,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,46 +78,66 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String getStopMonitoringJson(String agencyId, String stopId, String vehicleLabel, Long approx) {
-        long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
-        if (resultList.isEmpty()) {
-            return emptyDataMessageJson();
-        } else {
-            return mapStopMonitoring(resultList, agencyId);
+        try {
+            long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+            List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
+            if (resultList.isEmpty()) {
+                return emptyDataMessageJson();
+            } else {
+                return mapStopMonitoring(resultList, agencyId);
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+            return errorMessageJson(e.getMessage());
         }
     }
 
-    public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel, Long approx) throws IOException {
-        long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
-        List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
-        if (resultList.isEmpty()) {
-            return convertJsonToXml(emptyDataMessageJson(), "response");
-        } else {
-            String jsonData = mapStopMonitoring(resultList, agencyId);
-            return convertJsonToXml(jsonData, "Gtfs");
+    public String getStopMonitoringXml(String agencyId, String stopId, String vehicleLabel, Long approx) {
+        try {
+            long timestamp = approx == 0 ? 0 : new TimeConverter().currentTimeToUnix(timeZone) + approx;
+            List<StopMonitoring> resultList = stopMonitoringRepository.getStopMonitoring(agencyId, stopId, vehicleLabel, timestamp);
+            if (resultList.isEmpty()) {
+                return convertJsonToXml(emptyDataMessageJson(), "response");
+            } else {
+                String jsonData = mapStopMonitoring(resultList, agencyId);
+                return convertJsonToXml(jsonData, "Gtfs");
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+            return errorMessageXml(e.getMessage());
         }
     }
 
-    public String getDummyStopMonitoringJson(String agencyId, String stopId) throws IOException {
-        List<StopMonitoring> resultList = getDummyStopMonitoring(agencyId, stopId);
-        if (resultList.isEmpty()) {
-            return emptyDataMessageJson();
-        } else {
-            return mapStopMonitoring(resultList, agencyId);
+    public String getDummyStopMonitoringJson(String agencyId, String stopId) {
+        try {
+            List<StopMonitoring> resultList = getDummyStopMonitoring(agencyId, stopId);
+            if (resultList.isEmpty()) {
+                return emptyDataMessageJson();
+            } else {
+                return mapStopMonitoring(resultList, agencyId);
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+            return errorMessageJson(e.getMessage());
         }
     }
 
-    public String getDummyStopMonitoringXml(String agencyId, String stopId) throws IOException {
-        List<StopMonitoring> resultList = getDummyStopMonitoring(agencyId, stopId);
-        if (resultList.isEmpty()) {
-            return convertJsonToXml(emptyDataMessageJson(), "response");
-        } else {
-            String jsonData = mapStopMonitoring(resultList, agencyId);
-            return convertJsonToXml(jsonData, "Gtfs");
+    public String getDummyStopMonitoringXml(String agencyId, String stopId) {
+        try {
+            List<StopMonitoring> resultList = getDummyStopMonitoring(agencyId, stopId);
+            if (resultList.isEmpty()) {
+                return convertJsonToXml(emptyDataMessageJson(), "response");
+            } else {
+                String jsonData = mapStopMonitoring(resultList, agencyId);
+                return convertJsonToXml(jsonData, "Gtfs");
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+            return errorMessageXml(e.getMessage());
         }
     }
 
-    public List<StopMonitoring> getDummyStopMonitoring(String agencyId, String stopId) throws IOException {
+    public List<StopMonitoring> getDummyStopMonitoring(String agencyId, String stopId) throws Exception {
         BufferedReader fileReader = new BufferedReader(new InputStreamReader(new ClassPathResource(PATH_DUMMY_SM).getInputStream()));
         CSVParser csvParser = new CSVParser(fileReader, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
 
@@ -285,11 +308,21 @@ public class StopMonitoringService implements GlobalVariable {
     }
 
     public String emptyDataMessageJson() {
-        if (mapper == null) mapper = initializeObjectMapper();
-        ObjectNode objectNode = mapper.createObjectNode();
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
         objectNode.put("message", "No data available");
         objectNode.put("status", "OK");
         return objectNode.toString();
+    }
+
+    public String errorMessageJson(String message) {
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.put("message", message);
+        objectNode.put("status", "Error");
+        return objectNode.toString();
+    }
+
+    public String errorMessageXml(String message) {
+        return "<response><message>" + message + "</message><status>Error</status></response>";
     }
 
     public String convertJsonToXml(String jsonData, String rootName) throws JsonProcessingException {

@@ -3,7 +3,6 @@ package com.maesproject.gtfs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.maesproject.gtfs.service.api.StopMonitoringService;
-import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,7 @@ public class StopMonitoringController {
     public ResponseEntity<Object> checkApiReady() {
         ObjectNode response = new ObjectMapper().createObjectNode();
         response.put("api", "GTFS Realtime");
-        response.put("version", "1.0");
+        response.put("version", "2.4.0");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -41,23 +40,13 @@ public class StopMonitoringController {
         if (format != null && format.equalsIgnoreCase("xml")) {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
-            try {
-                String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id, vehicle_id, approx);
-                return new ResponseEntity<>(response, headers, HttpStatus.OK);
-            } catch (Exception e) {
-                Logger.error(e.getMessage());
-                return new ResponseEntity<>(responseMessageXml(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            String response = stopMonitoringService.getStopMonitoringXml(agency_id, stop_id, vehicle_id, approx);
+            return new ResponseEntity<>(response, headers, HttpStatus.OK);
         } else {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             headers.setContentType(MediaType.APPLICATION_JSON);
-            try {
-                String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id, vehicle_id, approx);
-                return new ResponseEntity<>(response, headers, HttpStatus.OK);
-            } catch (Exception e) {
-                Logger.error(e.getMessage());
-                return new ResponseEntity<>(responseMessageJson(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            String response = stopMonitoringService.getStopMonitoringJson(agency_id, stop_id, vehicle_id, approx);
+            return new ResponseEntity<>(response, headers, HttpStatus.OK);
         }
     }
 
@@ -71,23 +60,13 @@ public class StopMonitoringController {
         if (format != null && format.equalsIgnoreCase("xml")) {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
-            try {
-                String response = stopMonitoringService.getDummyStopMonitoringXml(agency_id, stop_id);
-                return new ResponseEntity<>(response, headers, HttpStatus.OK);
-            } catch (Exception e) {
-                Logger.error(e.getMessage());
-                return new ResponseEntity<>(responseMessageXml(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            String response = stopMonitoringService.getDummyStopMonitoringXml(agency_id, stop_id);
+            return new ResponseEntity<>(response, headers, HttpStatus.OK);
         } else {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
             headers.setContentType(MediaType.APPLICATION_JSON);
-            try {
-                String response = stopMonitoringService.getDummyStopMonitoringJson(agency_id, stop_id);
-                return new ResponseEntity<>(response, headers, HttpStatus.OK);
-            } catch (Exception e) {
-                Logger.error(e.getMessage());
-                return new ResponseEntity<>(responseMessageJson(e.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            String response = stopMonitoringService.getDummyStopMonitoringJson(agency_id, stop_id);
+            return new ResponseEntity<>(response, headers, HttpStatus.OK);
         }
     }
 
@@ -96,25 +75,15 @@ public class StopMonitoringController {
         HttpHeaders headers = new HttpHeaders();
         String formatData = req.getParameter("format");
         String message = "Required request parameter '" + e.getParameterName() + "' for method parameter!";
-        if (formatData != null && formatData.equals("json")) {
-            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            return new ResponseEntity<>(responseMessageJson(message), headers, HttpStatus.BAD_REQUEST);
-        } else {
+        if (formatData != null && formatData.equals("xml")) {
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
             headers.setContentType(MediaType.APPLICATION_XML);
-            return new ResponseEntity<>(responseMessageXml(message), headers, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(stopMonitoringService.errorMessageXml(message), headers, HttpStatus.BAD_REQUEST);
+        } else {
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            return new ResponseEntity<>(stopMonitoringService.errorMessageJson(message), headers, HttpStatus.BAD_REQUEST);
         }
     }
 
-    public String responseMessageJson(String message) {
-        ObjectNode objectNode = new ObjectMapper().createObjectNode();
-        objectNode.put("message", message);
-        objectNode.put("status", "Error");
-        return objectNode.toString();
-    }
-
-    public String responseMessageXml(String message) {
-        return "<response><message>" + message + "</message><status>Error</status></response>";
-    }
 }

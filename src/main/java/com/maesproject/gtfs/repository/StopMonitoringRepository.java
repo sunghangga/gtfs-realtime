@@ -17,7 +17,7 @@ public interface StopMonitoringRepository extends JpaRepository<StopMonitoring, 
             "and (:stopId is null or sm.stopId = :stopId) " +
             "and (:vehicleLabel is null or sm.vehicleLabel = :vehicleLabel) " +
             "and sm.timestamp >= :timestamp " +
-            "order by sm.aimedArrivalTime, sm.vehicleLabel, sm.currentStopSequence, sm.stopSequence ")
+            "order by sm.expectedArrivalTime, sm.vehicleLabel, sm.currentStopSequence, sm.stopSequence ")
     List<StopMonitoring> getStopMonitoring(
             @Param("agencyId") String agencyId,
             @Param("stopId") String stopId,

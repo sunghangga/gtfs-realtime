@@ -83,7 +83,7 @@ public class NextBusMapService {
         ObjectNode objectStop = new ObjectMapper().createObjectNode();
         List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
         for (Tuple tuple : stopInfo) {
-            objectStop.put("stopName", tuple.get("stop_name").toString());
+            objectStop.put("stopName", tuple.get("stop_name").toString().replace("@", "at"));
             objectStop.put("stopCode", stopCode);
             objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
             objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
@@ -100,12 +100,12 @@ public class NextBusMapService {
         String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         // get active service id
-        String arrayServiceId = nextBusService.getAllActiveServiceId(tripStartDate);
+        String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
 
         // set next trip start date and service id
         LocalDate nextTripStartDate = tripStartDate.plusDays(1);
         String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String arrayNextServiceId = nextBusService.getAllActiveServiceId(nextTripStartDate);
+        String arrayNextServiceId = nextBusService.getActiveServiceId(nextTripStartDate);
 
         String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
         String[] arrayServiceIdUnion = {arrayServiceId, arrayNextServiceId};
@@ -125,9 +125,14 @@ public class NextBusMapService {
             for (Tuple tupleMinute : nextDepartureList) {
                 if (!routeShortNameCheck.equals(tupleMinute.get("route_short_name").toString())) continue;
 
+                String tripScheduleRelationship = tupleMinute.get("trip_schedule_relationship").toString();
+                String stopScheduleRelationship = tupleMinute.get("stop_schedule_relationship").toString();
                 String minute = tupleMinute.get("rounded_minute").toString();
                 int minuteNumber = Integer.parseInt(minute);
                 next = next.isEmpty() ? (minuteNumber > 2 ? minute : "Now") : (next + ", " + minute);
+                if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                    next += " C";
+                }
                 nextCount++;
                 if (nextCount == 5) break;
             }

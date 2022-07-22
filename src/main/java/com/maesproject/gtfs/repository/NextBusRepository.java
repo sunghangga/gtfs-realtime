@@ -76,12 +76,19 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
+    public List<Tuple> getRouteInfo(String routeShortName) {
+        String sql = "select * from routes where route_short_name = '" + routeShortName + "'";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
     public List<Tuple> getTripHeadSignByRoute(String routeShortName) {
-        String sql = "select t.direction_id, t.trip_headsign, r.route_long_name\n" +
+        String sql = "select t.direction_id, t.trip_headsign\n" +
                 "from trips t\n" +
                 "join routes r on r.route_id = t.route_id\n" +
                 "where r.route_short_name = '" + routeShortName + "'\n" +
-                "group by t.direction_id, t.trip_headsign, r.route_long_name\n" +
+                "group by t.direction_id, t.trip_headsign\n" +
                 "order by t.direction_id";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
@@ -103,10 +110,10 @@ public class NextBusRepository {
 
     public List<Tuple> getStopByRouteAndDirection(String routeShortName, int directionId) {
         String sql = "select s.stop_code, s.stop_name\n" +
-                "from routes r\n" +
-                "join trips t on t.route_id = r.route_id\n" +
-                "join stop_times st on st.trip_id = t.trip_id\n" +
-                "join stops s on s.stop_id = st.stop_id\n" +
+                "from stops s\n" +
+                "join stop_times st on st.stop_id = s.stop_id\n" +
+                "join trips t on t.trip_id = st.trip_id\n" +
+                "join routes r on r.route_id = t.route_id\n" +
                 "where st.pickup_type is distinct from '1'\n" +
                 "and st.drop_off_type is distinct from '1'\n" +
                 "and r.route_short_name = '" + routeShortName + "'\n" +
@@ -163,7 +170,7 @@ public class NextBusRepository {
     }
 
     public List<Tuple> getTripHeadSignByRouteAndStop(String routeShortName, String stopCode, String arrayServiceId) {
-        String sql = "select distinct(t.trip_headsign), s.stop_name, t.direction_id, r.route_long_name\n" +
+        String sql = "select distinct(t.trip_headsign)\n" +
                 "from trips t\n" +
                 "join routes r on r.route_id = t.route_id\n" +
                 "join stop_times st on st.trip_id = t.trip_id\n" +
@@ -195,14 +202,30 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getRouteByStop(String stopCode) {
-        String sql = "select r.route_short_name, r.route_long_name, s.stop_name\n" +
-                "from stops s\n" +
-                "join stop_times st on st.stop_id = s.stop_id\n" +
-                "join trips t on t.trip_id = st.trip_id\n" +
+    public List<Tuple> getDirectionByRouteAndStop(String routeShortName, String stopCode) {
+        String sql = "select distinct(t.direction_id)\n" +
+                "from trips t\n" +
                 "join routes r on r.route_id = t.route_id\n" +
+                "join stop_times st on st.trip_id = t.trip_id\n" +
+                "join stops s on s.stop_id = st.stop_id\n" +
+                "where st.pickup_type is distinct from '1'\n" +
+                "and st.drop_off_type is distinct from '1'\n" +
+                "and r.route_short_name = '" + routeShortName + "'\n" +
+                "and s.stop_code = '" + stopCode + "'\n";
+
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getRouteByStop(String stopCode) {
+        String sql = "select r.route_short_name, r.route_long_name\n" +
+                "from routes r\n" +
+                "join trips t on t.route_id = r.route_id\n" +
+                "join stop_times st on st.trip_id  = t.trip_id\n" +
+                "join stops s on s.stop_id = st.stop_id\n" +
                 "where s.stop_code = '" + stopCode + "'\n" +
-                "group by r.route_long_name, r.route_short_name, s.stop_name\n" +
+                "group by r.route_short_name, r.route_long_name\n" +
                 "order by r.route_short_name";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);

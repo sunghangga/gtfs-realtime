@@ -36,7 +36,7 @@ public class BusScheduleService {
         ObjectNode objectRoute = new ObjectMapper().createObjectNode();
 
         LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
-        String arrayServiceId = nextBusService.getAllActiveServiceId(tripStartDate);
+        String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
         List<Tuple> routeList = busScheduleRepository.getRouteAndDirectionByParam(param, arrayServiceId);
 
         String lastRouteShortName = "";
@@ -91,7 +91,7 @@ public class BusScheduleService {
         }
         end = LocalTime.parse(endTime);
 
-        String arrayServiceId = nextBusService.getAllActiveServiceId(date);
+        String arrayServiceId = nextBusService.getActiveServiceId(date);
 
         String startDateTime = date + " " + start;
         String endDateTime = date + " " + end;

@@ -54,7 +54,7 @@ public class NextBusController {
     }
 
     @GetMapping(value = "/api/gtfs/next-bus/route/{route}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getDestination(@PathVariable("route") String routeShortName) {
+    public ResponseEntity<Object> getDestinations(@PathVariable("route") String routeShortName) {
         String response = nextBusService.getDestinations(routeShortName);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -310,7 +310,7 @@ public class NextBusRepository {
     }
 
     public List<Tuple> getMapVehicle(String stopCode, String routeShortName, String timeZone) {
-        String sql = "select r.route_short_name, t.trip_headsign, vp.vehicle_label, vp.position_latitude, vp.position_longitude, \n" +
+        String sql = "select r.route_short_name, t.trip_headsign, t.shape_id, vp.vehicle_label, vp.position_latitude, vp.position_longitude, \n" +
                 "timezone('" + timeZone + "', to_timestamp(vp.timestamp)) as \"timestamp\"\n" +
                 "from vehicle_positions vp\n" +
                 "join routes r on r.route_id = vp.route_id\n" +
@@ -332,26 +332,24 @@ public class NextBusRepository {
         }
 
         sql += ")\n" +
-                "order by r.route_short_name, t.trip_headsign, vp.timestamp";
+                "order by r.route_short_name, t.trip_headsign, t.shape_id, vp.timestamp";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
     }
 
-    public List<Tuple> getMapRoutePath(String stopCode, String routeShortName) {
-        String sql = "select r.route_short_name, sh.shape_id, sh.shape_pt_sequence, sh.shape_pt_lat, sh.shape_pt_lon, sh.shape_dist_traveled\n" +
-                "from shapes sh\n" +
-                "join trips t on t.shape_id = sh.shape_id\n" +
-                "join routes r on r.route_id = t.route_id\n" +
-                "join stop_times st on st.trip_id = t.trip_id\n" +
-                "join stops s on s.stop_id = st.stop_id\n" +
-                "where r.route_short_name = '" + routeShortName + "'\n";
-        if (!stopCode.isEmpty()) {
-            sql += "and s.stop_code = '" + stopCode + "'\n";
-        }
-        sql += "group by r.route_short_name, sh.shape_id, sh.shape_pt_sequence, sh.shape_pt_lat, sh.shape_pt_lon, sh.shape_dist_traveled\n" +
-                "order by r.route_short_name, sh.shape_id, sh.shape_pt_sequence";
+    public List<Tuple> getMapRoutePath(String routeShortName) {
+        String sql = "select x.*, sh.shape_pt_sequence, sh.shape_pt_lat, sh.shape_pt_lon, sh.shape_dist_traveled\n" +
+                "from (\n" +
+                "\tselect r.route_short_name, t.trip_headsign, t.shape_id\n" +
+                "\tfrom trips t \n" +
+                "\tjoin routes r on r.route_id = t.route_id\n" +
+                "\twhere r.route_short_name = '" + routeShortName + "'\n" +
+                "\tgroup by r.route_short_name, t.trip_headsign, t.shape_id\n" +
+                ") as x\n" +
+                "join shapes sh on sh.shape_id = x.shape_id\n" +
+                "order by x.route_short_name, x.trip_headsign, sh.shape_id, sh.shape_pt_sequence";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();

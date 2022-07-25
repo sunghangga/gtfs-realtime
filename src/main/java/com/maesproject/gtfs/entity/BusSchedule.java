@@ -11,7 +11,9 @@ public class BusSchedule {
     private String routeShortName;
     private int directionId;
     private String dateCheck;
+    private String startDate;
     private String startTime;
+    private String endDate;
     private String endTime;
     private List<RouteDirection> routeDirections;
     private List<StopSchedule> stopSchedules;

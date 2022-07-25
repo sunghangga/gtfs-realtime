@@ -58,7 +58,7 @@ public class NextBusMapService {
         objectNode.set("vehicles", arrayVehicle);
 
         // get route path list
-        ArrayNode arrayRoutePathList = getArrayShapeList(stopCode, routeShortName);
+        ArrayNode arrayRoutePathList = getArrayShapeList(routeShortName);
         objectNode.set("routePaths", arrayRoutePathList);
 
         return objectNode.toString();
@@ -69,7 +69,7 @@ public class NextBusMapService {
         ArrayNode arrayVehicle = getArrayVehicleList("", routeShortName);
 
         // get vehicle path list
-        ArrayNode arrayRoutePathList = getArrayShapeList("", routeShortName);
+        ArrayNode arrayRoutePathList = getArrayShapeList(routeShortName);
 
         // set object value
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -152,6 +152,7 @@ public class NextBusMapService {
             ObjectNode objectVehicle = new ObjectMapper().createObjectNode();
             objectVehicle.put("routeShortName", tupleVehicle.get("route_short_name").toString());
             objectVehicle.put("tripHeadSign", tupleVehicle.get("trip_headsign").toString());
+            objectVehicle.put("shapeId", tupleVehicle.get("shape_id").toString());
             objectVehicle.put("vehicleLabel", tupleVehicle.get("vehicle_label").toString());
             objectVehicle.put("positionLatitude", Double.parseDouble(tupleVehicle.get("position_latitude").toString()));
             objectVehicle.put("positionLongitude", Double.parseDouble(tupleVehicle.get("position_longitude").toString()));
@@ -162,9 +163,9 @@ public class NextBusMapService {
         return arrayVehicle;
     }
 
-    public ArrayNode getArrayShapeList(String stopCode, String routeShortName) {
+    public ArrayNode getArrayShapeList(String routeShortName) {
         ArrayNode arrayShape = new ObjectMapper().createArrayNode();
-        List<Tuple> shapeList = nextBusRepository.getMapRoutePath(stopCode, routeShortName);
+        List<Tuple> shapeList = nextBusRepository.getMapRoutePath(routeShortName);
         String shapeId = "";
         for (Tuple tupleShapeId : shapeList) {
             if (shapeId.equals(tupleShapeId.get("shape_id").toString())) continue;
@@ -173,6 +174,7 @@ public class NextBusMapService {
 
             ObjectNode objectShape = new ObjectMapper().createObjectNode();
             objectShape.put("routeShortName", tupleShapeId.get("route_short_name").toString());
+            objectShape.put("tripHeadSign", tupleShapeId.get("trip_headsign").toString());
             objectShape.put("shapeId", shapeId);
 
             ArrayNode arrayShapeDetail = new ObjectMapper().createArrayNode();

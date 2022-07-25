@@ -95,9 +95,10 @@ public class BusScheduleService {
 
         String startDateTime = date + " " + start;
         String endDateTime = date + " " + end;
+        LocalDate nextDate = date;
         if (end.isBefore(start)) {
-            LocalDate tomorrow = date.plusDays(1);
-            endDateTime = tomorrow + " " + end;
+            nextDate = date.plusDays(1);
+            endDateTime = nextDate + " " + end;
         }
 
         List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
@@ -159,7 +160,9 @@ public class BusScheduleService {
         busSchedule.setRouteShortName(routeShortName);
         busSchedule.setDirectionId(directionId);
         busSchedule.setDateCheck(date.toString());
+        busSchedule.setStartDate(date.toString());
         busSchedule.setStartTime(startTime);
+        busSchedule.setEndDate(nextDate.toString());
         busSchedule.setEndTime(endTime);
         busSchedule.setRouteDirections(routeDirectionList);
         busSchedule.setStopSchedules(stopScheduleList);

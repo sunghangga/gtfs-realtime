@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.maesproject.gtfs.entity.BusSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
+import com.maesproject.gtfs.util.GlobalVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,7 @@ public class BusScheduleService {
     }
 
     public BusSchedule getBusSchedule(String routeShortName, int directionId, String dateCheck, String startTime, String endTime) {
+        // define date check
         LocalDate date;
         if (dateCheck == null || dateCheck.isEmpty()) {
             date = LocalDate.now(ZoneId.of(timeZone));
@@ -79,28 +81,34 @@ public class BusScheduleService {
             date = LocalDate.parse(dateCheck);
         }
 
+        // define start time
         LocalTime start;
         if (startTime == null || startTime.isEmpty()) {
             startTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
         }
         start = LocalTime.parse(startTime);
 
+        // define end time
         LocalTime end;
         if (endTime == null || endTime.isEmpty()) {
             endTime = "23:59";
         }
         end = LocalTime.parse(endTime);
 
+        // get service id
         String arrayServiceId = nextBusService.getActiveServiceId(date);
 
         String startDateTime = date + " " + start;
         String endDateTime = date + " " + end;
+
+        // check if date result include the next day
         LocalDate nextDate = date;
         if (end.isBefore(start)) {
             nextDate = date.plusDays(1);
             endDateTime = nextDate + " " + end;
         }
 
+        // get stop
         List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
         List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
         for (Tuple tuple : stopList) {
@@ -124,6 +132,7 @@ public class BusScheduleService {
             stopScheduleList.add(stopSchedule);
         }
 
+        // get directions
         List<BusSchedule.RouteDirection> routeDirectionList = new ArrayList<>();
         List<Tuple> directionList = busScheduleRepository.getDirectionByRoute(routeShortName);
         for (Tuple tuple : directionList) {
@@ -131,6 +140,18 @@ public class BusScheduleService {
             routeDirection.setDirectionId(Integer.parseInt(tuple.get("direction_id").toString()));
             routeDirection.setDirectionName(tuple.get("direction_name").toString());
             routeDirectionList.add(routeDirection);
+        }
+
+        // get alternate direction if direction not found
+        if (directionList.isEmpty()) {
+            List<Tuple> alternateDirectionList = busScheduleRepository.getAlternateDirectionByRoute(routeShortName);
+            for (Tuple tuple : alternateDirectionList) {
+                BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
+                int direction = Integer.parseInt(tuple.get("direction_id").toString());
+                routeDirection.setDirectionId(direction);
+                routeDirection.setDirectionName(GlobalVariable.DIRECTION[direction]);
+                routeDirectionList.add(routeDirection);
+            }
         }
 
         // get alerts

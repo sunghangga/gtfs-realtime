@@ -74,6 +74,17 @@ public class BusScheduleRepository {
         return query.getResultList();
     }
 
+    public List<Tuple> getAlternateDirectionByRoute(String routeShortName) {
+        String sql = "select distinct(t.direction_id)\n" +
+                "from trips t\n" +
+                "join routes r on r.route_id = t.route_id\n" +
+                "where r.route_short_name = '" + routeShortName + "'\n" +
+                "order by t.direction_id";
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
     public List<Tuple> getAlertsByRoute(String routeShortName, long seconds) {
         String sql = "select x.effect, x.start_timestamp, x.end_timestamp, x.header_text, x.timestamp\n" +
                 "from (\n" +

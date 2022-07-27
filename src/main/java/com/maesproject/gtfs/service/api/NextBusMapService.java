@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.maesproject.gtfs.repository.NextBusRepository;
+import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,42 +26,42 @@ public class NextBusMapService {
     private String timeZone;
 
     public String getMapDepartureTimeByStop(String stopCode) {
-        ObjectNode objectNode = new ObjectMapper().createObjectNode();
-
         // get stop info
         ObjectNode objectStop = getObjectStopInfo(stopCode);
-        objectNode.set("stop", objectStop);
 
         // get next departure time info
         ArrayNode arrayRoute = getArrayDepartureList(stopCode);
-        objectNode.set("departures", arrayRoute);
 
         // get vehicle list
         ArrayNode arrayVehicle = getArrayVehicleList(stopCode, "");
-        objectNode.set("vehicles", arrayVehicle);
 
+        // set object value
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.set("stop", objectStop);
+        objectNode.set("departures", arrayRoute);
+        objectNode.set("vehicles", arrayVehicle);
         return objectNode.toString();
     }
 
     public String getMapDepartureTimeByStopAndRoute(String stopCode, String routeShortName) {
-        ObjectNode objectNode = new ObjectMapper().createObjectNode();
-
         // get stop info
         ObjectNode objectStop = getObjectStopInfo(stopCode);
-        objectNode.set("stop", objectStop);
 
         // get next departure time info
         ArrayNode arrayRoute = getArrayDepartureList(stopCode);
-        objectNode.set("departures", arrayRoute);
 
         // get vehicle list
         ArrayNode arrayVehicle = getArrayVehicleList(stopCode, routeShortName);
-        objectNode.set("vehicles", arrayVehicle);
 
         // get route path list
         ArrayNode arrayRoutePathList = getArrayShapeList(routeShortName);
-        objectNode.set("routePaths", arrayRoutePathList);
 
+        // set object value
+        ObjectNode objectNode = new ObjectMapper().createObjectNode();
+        objectNode.set("stop", objectStop);
+        objectNode.set("departures", arrayRoute);
+        objectNode.set("vehicles", arrayVehicle);
+        objectNode.set("routePaths", arrayRoutePathList);
         return objectNode.toString();
     }
 
@@ -68,130 +69,144 @@ public class NextBusMapService {
         // get vehicle list
         ArrayNode arrayVehicle = getArrayVehicleList("", routeShortName);
 
-        // get vehicle path list
+        // get route path list
         ArrayNode arrayRoutePathList = getArrayShapeList(routeShortName);
 
         // set object value
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
         objectNode.set("vehicles", arrayVehicle);
         objectNode.set("routePaths", arrayRoutePathList);
-
         return objectNode.toString();
     }
 
     public ObjectNode getObjectStopInfo(String stopCode) {
         ObjectNode objectStop = new ObjectMapper().createObjectNode();
-        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
-        for (Tuple tuple : stopInfo) {
-            objectStop.put("stopName", tuple.get("stop_name").toString().replace("@", "at"));
-            objectStop.put("stopCode", stopCode);
-            objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
-            objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
+        try {
+            List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
+            for (Tuple tuple : stopInfo) {
+                objectStop.put("stopName", tuple.get("stop_name").toString().replace("@", "at"));
+                objectStop.put("stopCode", stopCode);
+                objectStop.put("stopLatitude", tuple.get("stop_lat").toString());
+                objectStop.put("stopLongitude", tuple.get("stop_lon").toString());
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
         return objectStop;
     }
 
     public ArrayNode getArrayDepartureList(String stopCode) {
         ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
+        try {
+            // find trip start date
+            LocalDate tripStartDate = nextBusService.getTripStartDateByStop(stopCode);
+            if (tripStartDate == null) return arrayRoute;
+            String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        // find trip start date
-        LocalDate tripStartDate = nextBusService.getTripStartDateByStop(stopCode);
-        if (tripStartDate == null) return arrayRoute;
-        String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            // get active service id
+            String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
 
-        // get active service id
-        String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
+            // set next trip start date and service id
+            LocalDate nextTripStartDate = tripStartDate.plusDays(1);
+            String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String arrayNextServiceId = nextBusService.getActiveServiceId(nextTripStartDate);
 
-        // set next trip start date and service id
-        LocalDate nextTripStartDate = tripStartDate.plusDays(1);
-        String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String arrayNextServiceId = nextBusService.getActiveServiceId(nextTripStartDate);
+            String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
+            String[] arrayServiceIdUnion = {arrayServiceId, arrayNextServiceId};
 
-        String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
-        String[] arrayServiceIdUnion = {arrayServiceId, arrayNextServiceId};
+            String routeShortNameCheck = "";
+            List<Tuple> nextDepartureList = nextBusRepository.getMapDepartureTimeByStopUnion(stopCode, "", arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
+            for (Tuple tupleRoute : nextDepartureList) {
+                String route = tupleRoute.get("route_short_name").toString();
+                if (routeShortNameCheck.equals(route)) continue;
+                else routeShortNameCheck = route;
 
-        String routeShortNameCheck = "";
-        List<Tuple> nextDepartureList = nextBusRepository.getMapDepartureTimeByStopUnion(stopCode, "", arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
-        for (Tuple tupleRoute : nextDepartureList) {
-            String route = tupleRoute.get("route_short_name").toString();
-            if (routeShortNameCheck.equals(route)) continue;
-            else routeShortNameCheck = route;
+                ObjectNode objectRoute = new ObjectMapper().createObjectNode();
+                objectRoute.put("routeShortName", routeShortNameCheck);
 
-            ObjectNode objectRoute = new ObjectMapper().createObjectNode();
-            objectRoute.put("routeShortName", routeShortNameCheck);
+                String next = "";
+                int nextCount = 0;
+                for (Tuple tupleMinute : nextDepartureList) {
+                    if (!routeShortNameCheck.equals(tupleMinute.get("route_short_name").toString())) continue;
 
-            String next = "";
-            int nextCount = 0;
-            for (Tuple tupleMinute : nextDepartureList) {
-                if (!routeShortNameCheck.equals(tupleMinute.get("route_short_name").toString())) continue;
-
-                String tripScheduleRelationship = tupleMinute.get("trip_schedule_relationship").toString();
-                String stopScheduleRelationship = tupleMinute.get("stop_schedule_relationship").toString();
-                String minute = tupleMinute.get("rounded_minute").toString();
-                int minuteNumber = Integer.parseInt(minute);
-                next = next.isEmpty() ? (minuteNumber > 2 ? minute : "Now") : (next + ", " + minute);
-                if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
-                    next += " C";
+                    String tripScheduleRelationship = tupleMinute.get("trip_schedule_relationship").toString();
+                    String stopScheduleRelationship = tupleMinute.get("stop_schedule_relationship").toString();
+                    String minute = tupleMinute.get("rounded_minute").toString();
+                    int minuteNumber = Integer.parseInt(minute);
+                    next = next.isEmpty() ? (minuteNumber > 2 ? minute : "Now") : (next + ", " + minute);
+                    if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                        next += " C";
+                    }
+                    nextCount++;
+                    if (nextCount == 5) break;
                 }
-                nextCount++;
-                if (nextCount == 5) break;
-            }
-            objectRoute.put("departure", next + " min");
+                objectRoute.put("departure", next + " min");
 
-            arrayRoute.add(objectRoute);
+                arrayRoute.add(objectRoute);
+            }
+        } catch (NumberFormatException e) {
+            Logger.error(e.getMessage());
         }
         return arrayRoute;
     }
 
     public ArrayNode getArrayVehicleList(String stopCode, String routeShortName) {
         ArrayNode arrayVehicle = new ObjectMapper().createArrayNode();
-        List<Tuple> vehicleList = nextBusRepository.getMapVehicle(stopCode, routeShortName, timeZone);
-        for (Tuple tupleVehicle : vehicleList) {
-            LocalDateTime timestamp = LocalDateTime.parse(tupleVehicle.get("timestamp").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+        try {
+            List<Tuple> vehicleList = nextBusRepository.getMapVehicle(stopCode, routeShortName, timeZone);
+            for (Tuple tupleVehicle : vehicleList) {
+                LocalDateTime timestamp = LocalDateTime.parse(tupleVehicle.get("timestamp").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
 
-            ObjectNode objectVehicle = new ObjectMapper().createObjectNode();
-            objectVehicle.put("routeShortName", tupleVehicle.get("route_short_name").toString());
-            objectVehicle.put("tripHeadSign", tupleVehicle.get("trip_headsign").toString());
-            objectVehicle.put("shapeId", tupleVehicle.get("shape_id").toString());
-            objectVehicle.put("vehicleLabel", tupleVehicle.get("vehicle_label").toString());
-            objectVehicle.put("positionLatitude", Double.parseDouble(tupleVehicle.get("position_latitude").toString()));
-            objectVehicle.put("positionLongitude", Double.parseDouble(tupleVehicle.get("position_longitude").toString()));
-            objectVehicle.put("timestamp", timestamp.toLocalTime().format(DateTimeFormatter.ofPattern("hh:mm:ss a")).toLowerCase());
+                ObjectNode objectVehicle = new ObjectMapper().createObjectNode();
+                objectVehicle.put("routeShortName", tupleVehicle.get("route_short_name").toString());
+                objectVehicle.put("tripHeadSign", tupleVehicle.get("trip_headsign").toString());
+                objectVehicle.put("shapeId", tupleVehicle.get("shape_id").toString());
+                objectVehicle.put("vehicleLabel", tupleVehicle.get("vehicle_label").toString());
+                objectVehicle.put("positionLatitude", Double.parseDouble(tupleVehicle.get("position_latitude").toString()));
+                objectVehicle.put("positionLongitude", Double.parseDouble(tupleVehicle.get("position_longitude").toString()));
+                objectVehicle.put("timestamp", timestamp.toLocalTime().format(DateTimeFormatter.ofPattern("hh:mm:ss a")).toLowerCase());
 
-            arrayVehicle.add(objectVehicle);
+                arrayVehicle.add(objectVehicle);
+            }
+        } catch (NumberFormatException e) {
+            Logger.error(e.getMessage());
         }
         return arrayVehicle;
     }
 
     public ArrayNode getArrayShapeList(String routeShortName) {
         ArrayNode arrayShape = new ObjectMapper().createArrayNode();
-        List<Tuple> shapeList = nextBusRepository.getMapRoutePath(routeShortName);
-        String shapeId = "";
-        for (Tuple tupleShapeId : shapeList) {
-            if (shapeId.equals(tupleShapeId.get("shape_id").toString())) continue;
+        try {
+            List<Tuple> shapeList = nextBusRepository.getMapRoutePath(routeShortName);
+            String shapeId = "";
+            for (Tuple tupleShapeId : shapeList) {
+                if (shapeId.equals(tupleShapeId.get("shape_id").toString())) continue;
 
-            shapeId = tupleShapeId.get("shape_id").toString();
+                shapeId = tupleShapeId.get("shape_id").toString();
 
-            ObjectNode objectShape = new ObjectMapper().createObjectNode();
-            objectShape.put("routeShortName", tupleShapeId.get("route_short_name").toString());
-            objectShape.put("tripHeadSign", tupleShapeId.get("trip_headsign").toString());
-            objectShape.put("shapeId", shapeId);
+                ObjectNode objectShape = new ObjectMapper().createObjectNode();
+                objectShape.put("routeShortName", tupleShapeId.get("route_short_name").toString());
+                objectShape.put("tripHeadSign", tupleShapeId.get("trip_headsign").toString());
+                objectShape.put("shapeId", shapeId);
 
-            ArrayNode arrayShapeDetail = new ObjectMapper().createArrayNode();
-            for (Tuple tupleShapeDetail : shapeList) {
-                if (!shapeId.equals(tupleShapeDetail.get("shape_id").toString())) continue;
+                ArrayNode arrayShapeDetail = new ObjectMapper().createArrayNode();
+                for (Tuple tupleShapeDetail : shapeList) {
+                    if (!shapeId.equals(tupleShapeDetail.get("shape_id").toString())) continue;
 
-                ObjectNode objectShapeDetail = new ObjectMapper().createObjectNode();
-                objectShapeDetail.put("shapePointSequence", tupleShapeDetail.get("shape_pt_sequence").toString());
-                objectShapeDetail.put("shapePointLatitude", tupleShapeDetail.get("shape_pt_lat").toString());
-                objectShapeDetail.put("shapePointLongitude", tupleShapeDetail.get("shape_pt_lon").toString());
-                objectShapeDetail.put("shapeDistanceTraveled", tupleShapeDetail.get("shape_dist_traveled").toString());
+                    ObjectNode objectShapeDetail = new ObjectMapper().createObjectNode();
+                    objectShapeDetail.put("shapePointSequence", tupleShapeDetail.get("shape_pt_sequence").toString());
+                    objectShapeDetail.put("shapePointLatitude", tupleShapeDetail.get("shape_pt_lat").toString());
+                    objectShapeDetail.put("shapePointLongitude", tupleShapeDetail.get("shape_pt_lon").toString());
+                    objectShapeDetail.put("shapeDistanceTraveled", tupleShapeDetail.get("shape_dist_traveled").toString());
 
-                arrayShapeDetail.add(objectShapeDetail);
+                    arrayShapeDetail.add(objectShapeDetail);
+                }
+                objectShape.set("coordinates", arrayShapeDetail);
+
+                arrayShape.add(objectShape);
             }
-            objectShape.set("coordinates", arrayShapeDetail);
-
-            arrayShape.add(objectShape);
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
         return arrayShape;
     }

@@ -25,27 +25,51 @@ public class NextBusService {
     @Value("${timezone}")
     private String timeZone;
 
-    public String getRouteAndStopByParam(String param) {
-        // find routes
-        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
-        LocalDate dateCheck = LocalDate.now(ZoneId.of(timeZone));
-        String arrayServiceId = getActiveServiceId(dateCheck);
-        List<Tuple> routeList = nextBusRepository.getRouteByParam(param, arrayServiceId);
-        for (Tuple tuple : routeList) {
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("routeShortName", tuple.get("route_short_name").toString());
-            objectNode.put("routeLongName", tuple.get("route_long_name").toString());
-            arrayRoute.add(objectNode);
-        }
+    public String getActiveRoutes() {
+        ArrayNode arrayNode = new ObjectMapper().createArrayNode();
+        try {
+            LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+            String arrayServiceId = getActiveServiceId(tripStartDate);
+            List<Tuple> routeList = nextBusRepository.getActiveRoutes(arrayServiceId);
+            for (Tuple tuple : routeList) {
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("routeShortName", tuple.get("route_short_name").toString());
+                objectNode.put("routeLongName", tuple.get("route_long_name").toString().replace("/", " / "));
+                arrayNode.add(objectNode);
+            }
 
-        // find stops
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+        }
+        return arrayNode.toString();
+    }
+
+    public String getRouteAndStopByParam(String param) {
+        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
         ArrayNode arrayStop = new ObjectMapper().createArrayNode();
-        List<Tuple> stopList = nextBusRepository.getStopByParam(param);
-        for (Tuple tuple : stopList) {
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("stopCode", tuple.get("stop_code").toString());
-            objectNode.put("StopName", tuple.get("stop_name").toString());
-            arrayStop.add(objectNode);
+        try {
+            // find routes
+            LocalDate dateCheck = LocalDate.now(ZoneId.of(timeZone));
+            String arrayServiceId = getActiveServiceId(dateCheck);
+            List<Tuple> routeList = nextBusRepository.getRouteByParam(param, arrayServiceId);
+            for (Tuple tuple : routeList) {
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("routeShortName", tuple.get("route_short_name").toString());
+                objectNode.put("routeLongName", tuple.get("route_long_name").toString());
+                arrayRoute.add(objectNode);
+            }
+
+            // find stops
+            List<Tuple> stopList = nextBusRepository.getStopByParam(param);
+            for (Tuple tuple : stopList) {
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("stopCode", tuple.get("stop_code").toString());
+                objectNode.put("StopName", tuple.get("stop_name").toString());
+                arrayStop.add(objectNode);
+            }
+
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
 
         ObjectNode objectResult = new ObjectMapper().createObjectNode();
@@ -55,54 +79,49 @@ public class NextBusService {
     }
 
     public String checkParam(String param) {
-        int result = nextBusRepository.countRoute(param);
-        if (result > 0) return "route";
-        result = nextBusRepository.countStop(param);
-        if (result > 0) return "stop";
+        try {
+            int result = nextBusRepository.countRoute(param);
+            if (result > 0) return "route";
+            result = nextBusRepository.countStop(param);
+            if (result > 0) return "stop";
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+        }
         return "";
     }
 
-    public String getActiveRoutes() {
-        LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
-        String arrayServiceId = getActiveServiceId(tripStartDate);
-        List<Tuple> routeList = nextBusRepository.getActiveRoutes(arrayServiceId);
-        ArrayNode arrayNode = new ObjectMapper().createArrayNode();
-        for (Tuple tuple : routeList) {
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("routeShortName", tuple.get("route_short_name").toString());
-            objectNode.put("routeLongName", tuple.get("route_long_name").toString().replace("/", " / "));
-            arrayNode.add(objectNode);
-        }
-        return arrayNode.toString();
-    }
-
     public String getDestinations(String routeShortName) {
-        // get trip head sign (as direction)
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName);
         ArrayNode arrayDestination = new ObjectMapper().createArrayNode();
-        String directionCheck = "";
-        for (Tuple tuple : tripHeadSignList) {
-            String direction = tuple.get("direction_id").toString();
-            if (directionCheck.equals(direction)) continue;
-            else directionCheck = direction;
-
-            String combinedTripHeadSign = "";
-            for (Tuple tupleDirection : tripHeadSignList) {
-                if (!direction.equals(tupleDirection.get("direction_id").toString())) continue;
-
-                String tripHeadSign = tupleDirection.get("trip_headsign").toString();
-                combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
-            }
-            ObjectNode objectDestination = new ObjectMapper().createObjectNode();
-            objectDestination.put("combinedTripHeadSign", combinedTripHeadSign);
-            objectDestination.put("directionId", direction);
-            arrayDestination.add(objectDestination);
-        }
-
         String routeLongName = "";
-        List<Tuple> routeInfo = nextBusRepository.getRouteInfo(routeShortName);
-        for (Tuple tuple : routeInfo) {
-            routeLongName = tuple.get("route_long_name").toString();
+        try {
+            // get trip head sign (as direction)
+            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName);
+            String directionCheck = "";
+            for (Tuple tuple : tripHeadSignList) {
+                String direction = tuple.get("direction_id").toString();
+                if (directionCheck.equals(direction)) continue;
+                else directionCheck = direction;
+
+                String combinedTripHeadSign = "";
+                for (Tuple tupleDirection : tripHeadSignList) {
+                    if (!direction.equals(tupleDirection.get("direction_id").toString())) continue;
+
+                    String tripHeadSign = tupleDirection.get("trip_headsign").toString();
+                    combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
+                }
+                ObjectNode objectDestination = new ObjectMapper().createObjectNode();
+                objectDestination.put("combinedTripHeadSign", combinedTripHeadSign);
+                objectDestination.put("directionId", direction);
+                arrayDestination.add(objectDestination);
+            }
+
+            List<Tuple> routeInfo = nextBusRepository.getRouteInfo(routeShortName);
+            for (Tuple tuple : routeInfo) {
+                routeLongName = tuple.get("route_long_name").toString();
+            }
+
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
 
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -113,31 +132,36 @@ public class NextBusService {
     }
 
     public String getDestinationStops(String routeShortName, int directionId) {
-        // get stop
-        List<Tuple> stopList = nextBusRepository.getStopByRouteAndDirection(routeShortName, directionId);
         ArrayNode arrayStop = new ObjectMapper().createArrayNode();
-        for (Tuple tuple : stopList) {
-            String stopCode = tuple.get("stop_code").toString();
-            String stopName = tuple.get("stop_name").toString()
-                    .replace("@", "at")
-                    .replace("Eastbound", "")
-                    .replace("Westbound", "")
-                    .replace("Northbound", "")
-                    .replace("Southbound", "")
-                    .trim();
-
-            ObjectNode objectStop = new ObjectMapper().createObjectNode();
-            objectStop.put("stopCode", stopCode);
-            objectStop.put("stopName", stopName);
-            arrayStop.add(objectStop);
-        }
-
-        // get trip head sign
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId);
         String combinedTripHeadSign = "";
-        for (Tuple tuple : tripHeadSignList) {
-            String tripHeadSign = tuple.get("trip_headsign").toString();
-            combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
+        try {
+            // get stop
+            List<Tuple> stopList = nextBusRepository.getStopByRouteAndDirection(routeShortName, directionId);
+            for (Tuple tuple : stopList) {
+                String stopCode = tuple.get("stop_code").toString();
+                String stopName = tuple.get("stop_name").toString()
+                        .replace("@", "at")
+                        .replace("Eastbound", "")
+                        .replace("Westbound", "")
+                        .replace("Northbound", "")
+                        .replace("Southbound", "")
+                        .trim();
+
+                ObjectNode objectStop = new ObjectMapper().createObjectNode();
+                objectStop.put("stopCode", stopCode);
+                objectStop.put("stopName", stopName);
+                arrayStop.add(objectStop);
+            }
+
+            // get trip head sign
+            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId);
+            for (Tuple tuple : tripHeadSignList) {
+                String tripHeadSign = tuple.get("trip_headsign").toString();
+                combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
+            }
+
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
 
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -149,95 +173,98 @@ public class NextBusService {
     }
 
     public String getNextDepartureByRouteAndStop(String routeShortName, String stopCode) {
-        // find trip start date
-        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
-        if (tripStartDate == null) {
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("message", "No data available");
-            return objectNode.toString();
-        }
-
-        String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        // get active service id
-        String arrayServiceId = getActiveServiceId(tripStartDate);
-
-        // set trip start date and service id for next day
-        LocalDate nextTripStartDate = tripStartDate.plusDays(1);
-        String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
-
-        String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
-        String[] arrayServiceIdUnion = {arrayServiceId, nextArrayServiceId};
-
         ArrayNode arrayDeparture = new ObjectMapper().createArrayNode();
+        String stopName = "";
+        String routeLongName = "";
+        int directionId = 0;
+        try {
+            // find trip start date
+            LocalDate tripStartDate = getTripStartDateByStop(stopCode);
+            if (tripStartDate == null) {
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("message", "No data available");
+                return objectNode.toString();
+            }
 
-        // get trip head sign
-        List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndStop(routeShortName, stopCode, arrayServiceId);
-        for (Tuple tuple : tripHeadSignList) {
-            String tripHeadSign = tuple.get("trip_headsign").toString();
-            String departing = "";
-            String next = "";
-            String lastDepartureDateTime = "";
+            String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            // get next departure per trip head sign
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSignUnion(routeShortName, stopCode, tripHeadSign, arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
-            for (Tuple tupleDeparture : nextDepartureList) {
-                lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
-                String tripScheduleRelationship = tupleDeparture.get("trip_schedule_relationship").toString();
-                String stopScheduleRelationship = tupleDeparture.get("stop_schedule_relationship").toString();
-                int minute = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
+            // get active service id
+            String arrayServiceId = getActiveServiceId(tripStartDate);
 
-                if (departing.isEmpty()) {
-                    if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
-                        departing = "The bus departing in " + minute + " minutes was canceled";
-                    } else {
-                        if (minute <= 2) {
-                            departing = "Now";
+            // set trip start date and service id for next day
+            LocalDate nextTripStartDate = tripStartDate.plusDays(1);
+            String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
+
+            String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
+            String[] arrayServiceIdUnion = {arrayServiceId, nextArrayServiceId};
+
+            // get trip head sign
+            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndStop(routeShortName, stopCode, arrayServiceId);
+            for (Tuple tuple : tripHeadSignList) {
+                String tripHeadSign = tuple.get("trip_headsign").toString();
+                String departing = "";
+                String next = "";
+                String lastDepartureDateTime = "";
+
+                // get next departure per trip head sign
+                List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerTripHeadSignUnion(routeShortName, stopCode, tripHeadSign, arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
+                for (Tuple tupleDeparture : nextDepartureList) {
+                    lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
+                    String tripScheduleRelationship = tupleDeparture.get("trip_schedule_relationship").toString();
+                    String stopScheduleRelationship = tupleDeparture.get("stop_schedule_relationship").toString();
+                    int minute = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
+
+                    if (departing.isEmpty()) {
+                        if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                            departing = "The bus departing in " + minute + " minutes was canceled";
                         } else {
-                            departing = minute + " Minutes";
+                            if (minute <= 2) {
+                                departing = "Now";
+                            } else {
+                                departing = minute + " Minutes";
+                            }
+                        }
+                    } else {
+                        next = (next.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : next + ", " + tupleDeparture.get("rounded_minute");
+                        if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                            next += " C";
                         }
                     }
-                } else {
-                    next = (next.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : next + ", " + tupleDeparture.get("rounded_minute");
-                    if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
-                        next += " C";
-                    }
                 }
+
+                if (next.isEmpty()) {
+                    // find next scheduled time
+                    next = getNextScheduled(routeShortName, tripHeadSign, stopCode, lastDepartureDateTime);
+                } else {
+                    next = next + " min";
+                }
+
+                ObjectNode objectDeparture = new ObjectMapper().createObjectNode();
+                objectDeparture.put("tripHeadSign", tripHeadSign);
+                objectDeparture.put("departing", departing);
+                objectDeparture.put("next", next);
+                arrayDeparture.add(objectDeparture);
             }
 
-            if (next.isEmpty()) {
-                // find next scheduled time
-                next = getNextScheduled(routeShortName, tripHeadSign, stopCode, lastDepartureDateTime);
-            } else {
-                next = next + " min";
+            // get detail
+            List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
+            for (Tuple tuple : stopInfo) {
+                stopName = tuple.get("stop_name").toString().replace("@", "at");
             }
 
-            ObjectNode objectDeparture = new ObjectMapper().createObjectNode();
-            objectDeparture.put("tripHeadSign", tripHeadSign);
-            objectDeparture.put("departing", departing);
-            objectDeparture.put("next", next);
-            arrayDeparture.add(objectDeparture);
-        }
+            List<Tuple> routeInfo = nextBusRepository.getRouteInfo(routeShortName);
+            for (Tuple tuple : routeInfo) {
+                routeLongName = tuple.get("route_long_name").toString();
+            }
 
-        // get detail
+            List<Tuple> directionList = nextBusRepository.getDirectionByRouteAndStop(routeShortName, stopCode);
+            for (Tuple tuple : directionList) {
+                directionId = Integer.parseInt(tuple.get("direction_id").toString());
+            }
 
-        String stopName = "";
-        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
-        for (Tuple tuple : stopInfo) {
-            stopName = tuple.get("stop_name").toString().replace("@", "at");;
-        }
-
-        String routeLongName = "";
-        List<Tuple> routeInfo = nextBusRepository.getRouteInfo(routeShortName);
-        for (Tuple tuple : routeInfo) {
-            routeLongName = tuple.get("route_long_name").toString();
-        }
-
-        int directionId = 0;
-        List<Tuple> directionList = nextBusRepository.getDirectionByRouteAndStop(routeShortName, stopCode);
-        for (Tuple tuple : directionList) {
-            directionId = Integer.parseInt(tuple.get("direction_id").toString());
+        } catch (NumberFormatException e) {
+            Logger.error(e.getMessage());
         }
 
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
@@ -251,113 +278,120 @@ public class NextBusService {
     }
 
     public String getNextDepartureByStop(String stopCode) {
-        // find trip start date
-        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
-        if (tripStartDate == null) {
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("message", "No data available");
-            return objectNode.toString();
-        }
-
-        String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        // get service id
-        String arrayServiceId = getActiveServiceId(tripStartDate);
-
-        // set nest trip start date and service id
-        LocalDate nextTripStartDate = tripStartDate.plusDays(1);
-        String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
-
-        String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
-        String[] arrayServiceIdUnion = {arrayServiceId, nextArrayServiceId};
-
         ArrayNode arrayRouteDeparture = new ObjectMapper().createArrayNode();
+        String stopName = "";
+        try {
+            // find trip start date
+            LocalDate tripStartDate = getTripStartDateByStop(stopCode);
+            if (tripStartDate == null) {
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("message", "No data available");
+                return objectNode.toString();
+            }
 
-        // get route list
-        List<Tuple> routeList = nextBusRepository.getRouteByStop(stopCode);
-        for (Tuple tuple : routeList) {
-            String routeShortName = tuple.get("route_short_name").toString();
-            String routeLongName = tuple.get("route_long_name").toString();
-            String departing = "";
-            String nextInfo = "";
-            String lastDepartureDateTime = "";
+            String tripStartDateWithoutDash = tripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerRouteUnion(routeShortName, stopCode, arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
-            for (Tuple tupleDeparture : nextDepartureList) {
-                lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
-                String tripScheduleRelationship = tupleDeparture.get("trip_schedule_relationship").toString();
-                String stopScheduleRelationship = tupleDeparture.get("stop_schedule_relationship").toString();
-                int depart = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
+            // get service id
+            String arrayServiceId = getActiveServiceId(tripStartDate);
 
-                if (departing.isEmpty()) {
-                    if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
-                        departing = "The bus departing in " + depart + " minutes was canceled";
-                    } else {
-                        if (depart <= 2) {
-                            departing = "Now";
+            // set nest trip start date and service id
+            LocalDate nextTripStartDate = tripStartDate.plusDays(1);
+            String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
+
+            String[] arrayTripStartDateUnion = {tripStartDateWithoutDash, nextTripStartDateWithoutDash};
+            String[] arrayServiceIdUnion = {arrayServiceId, nextArrayServiceId};
+
+            // get route list
+            List<Tuple> routeList = nextBusRepository.getRouteByStop(stopCode);
+            for (Tuple tuple : routeList) {
+                String routeShortName = tuple.get("route_short_name").toString();
+                String routeLongName = tuple.get("route_long_name").toString();
+                String departing = "";
+                String nextInfo = "";
+                String lastDepartureDateTime = "";
+
+                List<Tuple> nextDepartureList = nextBusRepository.getNextDeparturePerRouteUnion(routeShortName, stopCode, arrayServiceIdUnion, arrayTripStartDateUnion, timeZone);
+                for (Tuple tupleDeparture : nextDepartureList) {
+                    lastDepartureDateTime = tupleDeparture.get("departure_date_time").toString();
+                    String tripScheduleRelationship = tupleDeparture.get("trip_schedule_relationship").toString();
+                    String stopScheduleRelationship = tupleDeparture.get("stop_schedule_relationship").toString();
+                    int depart = Integer.parseInt(tupleDeparture.get("rounded_minute").toString());
+
+                    if (departing.isEmpty()) {
+                        if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                            departing = "The bus departing in " + depart + " minutes was canceled";
                         } else {
-                            departing = depart + " Minutes";
+                            if (depart <= 2) {
+                                departing = "Now";
+                            } else {
+                                departing = depart + " Minutes";
+                            }
+                        }
+                    } else {
+                        nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextInfo + ", " + tupleDeparture.get("rounded_minute");
+                        if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
+                            nextInfo += " C";
                         }
                     }
-                } else {
-                    nextInfo = (nextInfo.isEmpty()) ? "" + tupleDeparture.get("rounded_minute") : nextInfo + ", " + tupleDeparture.get("rounded_minute");
-                    if (tripScheduleRelationship.equals("CANCELED") || stopScheduleRelationship.equals("SKIPPED")) {
-                        nextInfo += " C";
-                    }
                 }
+
+                if (nextInfo.isEmpty()) {
+                    // find next scheduled time
+                    nextInfo = getNextScheduled(routeShortName, "", stopCode, lastDepartureDateTime);
+                } else {
+                    nextInfo += " min";
+                }
+
+                ObjectNode objectNode = new ObjectMapper().createObjectNode();
+                objectNode.put("routeShortName", routeShortName);
+                objectNode.put("routeLongName", routeLongName);
+                objectNode.put("departing", departing);
+                objectNode.put("next", nextInfo);
+                arrayRouteDeparture.add(objectNode);
             }
 
-            if (nextInfo.isEmpty()) {
-                // find next scheduled time
-                nextInfo = getNextScheduled(routeShortName, "", stopCode, lastDepartureDateTime);
-            } else {
-                nextInfo += " min";
+            List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
+            for (Tuple tuple : stopInfo) {
+                stopName = tuple.get("stop_name").toString().replace("@", "at");
             }
 
-            ObjectNode objectNode = new ObjectMapper().createObjectNode();
-            objectNode.put("routeShortName", routeShortName);
-            objectNode.put("routeLongName", routeLongName);
-            objectNode.put("departing", departing);
-            objectNode.put("next", nextInfo);
-            arrayRouteDeparture.add(objectNode);
-        }
-
-        String stopName = "";
-        List<Tuple> stopInfo = nextBusRepository.getStopInfo(stopCode);
-        for (Tuple tuple : stopInfo) {
-            stopName = tuple.get("stop_name").toString().replace("@", "at");;
+        } catch (NumberFormatException e) {
+            Logger.error(e.getMessage());
         }
 
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
         objectNode.put("stopName", stopName);
         objectNode.put("stopCode", stopCode);
         objectNode.set("departureSchedules", arrayRouteDeparture);
-
         return objectNode.toString();
     }
 
     public String getNextScheduled(String routeShortName, String tripHeadSign, String stopCode, String lastDepartureDateTime) {
-        int add = 0;
         String nextSchedule = "";
-        LocalDate tripStartDate = getTripStartDateByStop(stopCode);
-        if (tripStartDate == null) return "";
-        while (add < 2) {
-            LocalDate nextTripStartDate = tripStartDate.plusDays(add);
-            String dateCheck = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String arrayServiceId = getActiveServiceId(nextTripStartDate);
+        try {
+            LocalDate tripStartDate = getTripStartDateByStop(stopCode);
+            if (tripStartDate == null) return "";
+            int add = 0;
+            while (add < 2) {
+                LocalDate nextTripStartDate = tripStartDate.plusDays(add);
+                String dateCheck = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                String arrayServiceId = getActiveServiceId(nextTripStartDate);
 
-            LocalDateTime nextScheduled = nextBusRepository.getNextScheduledAfterLastTrip(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateCheck, timeZone, lastDepartureDateTime);
-            if (nextScheduled == null) {
-                add++;
-                continue;
+                LocalDateTime nextScheduled = nextBusRepository.getNextScheduledAfterLastTrip(routeShortName, tripHeadSign, stopCode, arrayServiceId, dateCheck, timeZone, lastDepartureDateTime);
+                if (nextScheduled == null) {
+                    add++;
+                    continue;
+                }
+                LocalDate nextDate = nextScheduled.toLocalDate();
+                nextSchedule = "Scheduled at " + nextScheduled.toLocalTime().format(DateTimeFormatter.ofPattern("h:mma")).toLowerCase();
+                if (!nextDate.isEqual(LocalDate.now(ZoneId.of(timeZone)))) {
+                    nextSchedule += " " + nextDate;
+                }
+                break;
             }
-            LocalDate nextDate = nextScheduled.toLocalDate();
-            nextSchedule = "Scheduled at " + nextScheduled.toLocalTime().format(DateTimeFormatter.ofPattern("h:mma")).toLowerCase();
-            if (!nextDate.isEqual(LocalDate.now(ZoneId.of(timeZone)))) {
-                nextSchedule += " " + nextDate;
-            }
-            break;
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
         return nextSchedule;
     }
@@ -365,33 +399,40 @@ public class NextBusService {
     public LocalDate getTripStartDateByStop(String stopCode) {
         // check if ongoing trip is from today's trip or from yesterday's trip
         // by comparing current time to the latest departure time of the route/stop
+        LocalDate tripStartDate = null;
+        try {
+            // get last departure time
+            LocalTime lastDepartureTime = nextBusRepository.getLastDepartureTime(stopCode);
+            if (lastDepartureTime == null) {
+                Logger.error("Cannot find last departure time for stop '" + stopCode + "'! ");
+                return null;
+            }
 
-        // get last departure time
-        LocalTime lastDepartureTime = nextBusRepository.getLastDepartureTime(stopCode);
-        if (lastDepartureTime == null) {
-            Logger.error("Cannot find last departure time for stop '" + stopCode + "'! ");
-            return null;
-        }
-
-        // define trip start date
-        LocalDate tripStartDate;
-        if (LocalTime.now(ZoneId.of(timeZone)).isAfter(lastDepartureTime)) {
-            // using today trip start date
-            tripStartDate = LocalDate.now(ZoneId.of(timeZone));
-        } else {
-            // using yesterday trip start date
-            tripStartDate = LocalDate.now(ZoneId.of(timeZone)).minusDays(1);
+            // define trip start date
+            if (LocalTime.now(ZoneId.of(timeZone)).isAfter(lastDepartureTime)) {
+                // using today trip start date
+                tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+            } else {
+                // using yesterday trip start date
+                tripStartDate = LocalDate.now(ZoneId.of(timeZone)).minusDays(1);
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
         return tripStartDate;
     }
 
     public String getActiveServiceId(LocalDate dateCheck) {
         String arrayServiceId = "";
-        String dateWithoutDash = dateCheck.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String dayOfWeek = dateCheck.getDayOfWeek().name().toLowerCase();
-        List<Tuple> serviceIdCalendar = nextBusRepository.getAllActiveServiceId(dateWithoutDash, dayOfWeek);
-        for (Tuple tuple : serviceIdCalendar) {
-            arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
+        try {
+            String dateWithoutDash = dateCheck.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String dayOfWeek = dateCheck.getDayOfWeek().name().toLowerCase();
+            List<Tuple> serviceIdCalendar = nextBusRepository.getAllActiveServiceId(dateWithoutDash, dayOfWeek);
+            for (Tuple tuple : serviceIdCalendar) {
+                arrayServiceId = arrayServiceId.isEmpty() ? "'" + tuple.get("service_id") + "'" : arrayServiceId + ", '" + tuple.get("service_id") + "'";
+            }
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
         }
         return arrayServiceId;
     }

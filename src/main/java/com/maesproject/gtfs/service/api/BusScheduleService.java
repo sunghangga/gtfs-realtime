@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.maesproject.gtfs.entity.BusSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
-import com.maesproject.gtfs.util.GlobalVariable;
+import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,163 +31,174 @@ public class BusScheduleService {
 
     public String getRouteByParam(String param) {
         ObjectNode objectResult = new ObjectMapper().createObjectNode();
-        // find routes
-        ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
-        ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
-        ObjectNode objectRoute = new ObjectMapper().createObjectNode();
+        try {
+            // find routes
+            ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
+            ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
+            ObjectNode objectRoute = new ObjectMapper().createObjectNode();
 
-        LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
-        String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
-        List<Tuple> routeList = busScheduleRepository.getRouteAndDirectionByParam(param, arrayServiceId);
+            LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+            String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
+            List<Tuple> routeList = busScheduleRepository.getRouteAndDirectionByParam(param, arrayServiceId);
 
-        String lastRouteShortName = "";
-        for (Tuple tuple : routeList) {
-            String routeShortName = tuple.get("route_short_name").toString();
-            if (routeShortName.equals(lastRouteShortName)) {
-                ObjectNode objectDirection = new ObjectMapper().createObjectNode();
-                objectDirection.put("directionId", tuple.get("direction_id").toString());
-                objectDirection.put("directionName", tuple.get("direction_name").toString());
-                arrayDirection.add(objectDirection);
-            } else {
-                lastRouteShortName = routeShortName;
-                objectRoute = new ObjectMapper().createObjectNode();
-                objectRoute.put("routeShortName", tuple.get("route_short_name").toString());
-                objectRoute.put("routeLongName", tuple.get("route_long_name").toString());
-                arrayRoute.add(objectRoute);
-                ObjectNode objectDirection = new ObjectMapper().createObjectNode();
-                objectDirection.put("directionId", tuple.get("direction_id").toString());
-                objectDirection.put("directionName", tuple.get("direction_name").toString());
-                arrayDirection = new ObjectMapper().createArrayNode();
-                arrayDirection.add(objectDirection);
-                continue;
+            String lastRouteShortName = "";
+            for (Tuple tuple : routeList) {
+                String routeShortName = tuple.get("route_short_name").toString();
+                if (routeShortName.equals(lastRouteShortName)) {
+                    ObjectNode objectDirection = new ObjectMapper().createObjectNode();
+                    objectDirection.put("directionId", tuple.get("direction_id").toString());
+                    objectDirection.put("directionName", tuple.get("direction_name").toString());
+                    arrayDirection.add(objectDirection);
+                } else {
+                    lastRouteShortName = routeShortName;
+                    objectRoute = new ObjectMapper().createObjectNode();
+                    objectRoute.put("routeShortName", tuple.get("route_short_name").toString());
+                    objectRoute.put("routeLongName", tuple.get("route_long_name").toString());
+                    arrayRoute.add(objectRoute);
+                    ObjectNode objectDirection = new ObjectMapper().createObjectNode();
+                    objectDirection.put("directionId", tuple.get("direction_id").toString());
+                    objectDirection.put("directionName", tuple.get("direction_name").toString());
+                    arrayDirection = new ObjectMapper().createArrayNode();
+                    arrayDirection.add(objectDirection);
+                    continue;
+                }
+                objectRoute.set("directions", arrayDirection);
             }
-            objectRoute.set("directions", arrayDirection);
-        }
-        objectResult.set("routes", arrayRoute);
+            objectResult.set("routes", arrayRoute);
 
-        // find lines
+            // find lines
 //        ArrayNode arrayLine = new ObjectMapper().createArrayNode();
 //        objectResult.set("lines", arrayLine);
-
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+        }
         return objectResult.toString();
     }
 
     public BusSchedule getBusSchedule(String routeShortName, int directionId, String dateCheck, String startTime, String endTime) {
-        // define date check
-        LocalDate date;
-        if (dateCheck == null || dateCheck.isEmpty()) {
-            date = LocalDate.now(ZoneId.of(timeZone));
-        } else {
-            date = LocalDate.parse(dateCheck);
-        }
-
-        // define start time
-        LocalTime start;
-        if (startTime == null || startTime.isEmpty()) {
-            startTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
-        }
-        start = LocalTime.parse(startTime);
-
-        // define end time
-        LocalTime end;
-        if (endTime == null || endTime.isEmpty()) {
-            endTime = "23:59";
-        }
-        end = LocalTime.parse(endTime);
-
-        // get service id
-        String arrayServiceId = nextBusService.getActiveServiceId(date);
-
-        String startDateTime = date + " " + start;
-        String endDateTime = date + " " + end;
-
-        // check if date result include the next day
-        LocalDate nextDate = date;
-        if (end.isBefore(start)) {
-            nextDate = date.plusDays(1);
-            endDateTime = nextDate + " " + end;
-        }
-
-        // get stop
-        List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
-        List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
-        for (Tuple tuple : stopList) {
-            String stopName = tuple.get("stop_name").toString()
-                    .replace("Eastbound", "")
-                    .replace("Westbound", "")
-                    .replace("Northbound", "")
-                    .replace("Southbound", "")
-                    .trim();
-            BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
-            stopSchedule.setStopCode(tuple.get("stop_code").toString());
-            stopSchedule.setStopName(stopName);
-            String stopId = tuple.get("stop_id").toString();
-            List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
-            List<String> scheduleList = new ArrayList<>();
-            for (Tuple arrivalTime : arrivalTimeList) {
-                LocalTime time = LocalTime.parse(arrivalTime.get("time_schedule").toString());
-                scheduleList.add(time.format(DateTimeFormatter.ofPattern("h:mm a")).toLowerCase());
+        try {
+            // define date check
+            LocalDate date;
+            if (dateCheck == null || dateCheck.isEmpty()) {
+                date = LocalDate.now();
+            } else {
+                date = LocalDate.parse(dateCheck);
             }
-            stopSchedule.setArrivalTimes(scheduleList);
-            stopScheduleList.add(stopSchedule);
-        }
 
-        // get directions
-        List<BusSchedule.RouteDirection> routeDirectionList = new ArrayList<>();
-        List<Tuple> directionList = busScheduleRepository.getDirectionByRoute(routeShortName);
-        for (Tuple tuple : directionList) {
-            BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
-            routeDirection.setDirectionId(Integer.parseInt(tuple.get("direction_id").toString()));
-            routeDirection.setDirectionName(tuple.get("direction_name").toString());
-            routeDirectionList.add(routeDirection);
-        }
+            // define start time
+            LocalTime start;
+            if (startTime == null || startTime.isEmpty()) {
+                startTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+            }
+            start = LocalTime.parse(startTime);
 
-        // get alternate direction if direction not found
-        if (directionList.isEmpty()) {
-            List<Tuple> alternateDirectionList = busScheduleRepository.getAlternateDirectionByRoute(routeShortName);
-            for (Tuple tuple : alternateDirectionList) {
+            // define end time
+            LocalTime end;
+            if (endTime == null || endTime.isEmpty()) {
+                endTime = "23:59";
+            }
+            end = LocalTime.parse(endTime);
+
+            // get service id
+            String arrayServiceId = nextBusService.getActiveServiceId(date);
+
+            String startDateTime = date + " " + start;
+            String endDateTime = date + " " + end;
+
+            // check if date result include the next day
+            LocalDate nextDate = date;
+            if (end.isBefore(start)) {
+                nextDate = date.plusDays(1);
+                endDateTime = nextDate + " " + end;
+            }
+
+            // get stop
+            List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();
+            List<Tuple> stopList = busScheduleRepository.getStop(routeShortName, directionId);
+            for (Tuple tuple : stopList) {
+                String stopName = tuple.get("stop_name").toString()
+                        .replace("Eastbound", "")
+                        .replace("Westbound", "")
+                        .replace("Northbound", "")
+                        .replace("Southbound", "")
+                        .trim();
+                BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
+                stopSchedule.setStopCode(tuple.get("stop_code").toString());
+                stopSchedule.setStopName(stopName);
+                String stopId = tuple.get("stop_id").toString();
+                List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
+                List<String> scheduleList = new ArrayList<>();
+                for (Tuple arrivalTime : arrivalTimeList) {
+                    LocalTime time = LocalTime.parse(arrivalTime.get("time_schedule").toString());
+                    scheduleList.add(time.format(DateTimeFormatter.ofPattern("h:mm a")).toLowerCase());
+                }
+                stopSchedule.setArrivalTimes(scheduleList);
+                stopScheduleList.add(stopSchedule);
+            }
+
+            // get direction
+            List<BusSchedule.RouteDirection> routeDirectionList = new ArrayList<>();
+            List<Tuple> directionList = busScheduleRepository.getDirectionByRoute(routeShortName);
+            for (Tuple tuple : directionList) {
                 BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
-                int direction = Integer.parseInt(tuple.get("direction_id").toString());
-                routeDirection.setDirectionId(direction);
-                routeDirection.setDirectionName(GlobalVariable.DIRECTION[direction]);
+                routeDirection.setDirectionId(Integer.parseInt(tuple.get("direction_id").toString()));
+                routeDirection.setDirectionName(tuple.get("direction_name").toString());
                 routeDirectionList.add(routeDirection);
             }
-        }
 
-        // get alerts
-        List<BusSchedule.AlertInfo> alertInfoList = new ArrayList<>();
-        long seconds = date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
-        List<Tuple> alertList = busScheduleRepository.getAlertsByRoute(routeShortName, seconds);
-        for (Tuple tuple : alertList) {
-            String startDate = tuple.get("start_timestamp").toString();
-            String endDate = tuple.get("end_timestamp") == null ? "unknown" : tuple.get("end_timestamp").toString();
-
-            LocalDateTime startInfo = LocalDateTime.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
-            startDate = startInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
-
-            if (!endDate.equals("unknown")) {
-                LocalDateTime endInfo = LocalDateTime.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
-                endDate = endInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
+            // get alternate direction if direction not found
+            if (directionList.isEmpty()) {
+                List<Tuple> alternateDirectionList = busScheduleRepository.getAlternateDirectionByRoute(routeShortName);
+                for (Tuple tuple : alternateDirectionList) {
+                    BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
+                    int direction = Integer.parseInt(tuple.get("direction_id").toString());
+                    routeDirection.setDirectionId(direction);
+                    routeDirection.setDirectionName(direction == 0 ? "Outbound" : "Inbound");
+                    routeDirectionList.add(routeDirection);
+                }
             }
 
-            BusSchedule.AlertInfo alertInfo = new BusSchedule.AlertInfo();
-            alertInfo.setEffect(tuple.get("effect").toString());
-            alertInfo.setDuration(startDate + " - " + endDate);
-            alertInfo.setHeader(tuple.get("header_text").toString());
-            alertInfoList.add(alertInfo);
-        }
+            // get alert
+            List<BusSchedule.AlertInfo> alertInfoList = new ArrayList<>();
+            long seconds = date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+            List<Tuple> alertList = busScheduleRepository.getAlertByRoute(routeShortName, seconds);
+            for (Tuple tuple : alertList) {
+                String startDate = tuple.get("start_timestamp").toString();
+                String endDate = tuple.get("end_timestamp") == null ? "unknown" : tuple.get("end_timestamp").toString();
 
-        BusSchedule busSchedule = new BusSchedule();
-        busSchedule.setRouteShortName(routeShortName);
-        busSchedule.setDirectionId(directionId);
-        busSchedule.setDateCheck(date.toString());
-        busSchedule.setStartDate(date.toString());
-        busSchedule.setStartTime(startTime);
-        busSchedule.setEndDate(nextDate.toString());
-        busSchedule.setEndTime(endTime);
-        busSchedule.setRouteDirections(routeDirectionList);
-        busSchedule.setStopSchedules(stopScheduleList);
-        busSchedule.setAlerts(alertInfoList);
-        return busSchedule;
+                LocalDateTime startInfo = LocalDateTime.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+                startDate = startInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
+
+                if (!endDate.equals("unknown")) {
+                    LocalDateTime endInfo = LocalDateTime.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+                    endDate = endInfo.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy h:mm a"));
+                }
+
+                BusSchedule.AlertInfo alertInfo = new BusSchedule.AlertInfo();
+                alertInfo.setEffect(tuple.get("effect").toString());
+                alertInfo.setDuration(startDate + " - " + endDate);
+                alertInfo.setHeader(tuple.get("header_text").toString());
+                alertInfoList.add(alertInfo);
+            }
+
+            String fromDate = date.format(DateTimeFormatter.ofPattern("EEE MMM dd"));
+            String toDate = nextDate.format(DateTimeFormatter.ofPattern("EEE MMM dd"));
+
+            BusSchedule busSchedule = new BusSchedule();
+            busSchedule.setRouteShortName(routeShortName);
+            busSchedule.setDirectionId(directionId);
+            busSchedule.setDateCheck(date.toString());
+            busSchedule.setStartDate(fromDate);
+            busSchedule.setStartTime(startTime);
+            busSchedule.setEndDate(toDate);
+            busSchedule.setEndTime(endTime);
+            busSchedule.setRouteDirections(routeDirectionList);
+            busSchedule.setStopSchedules(stopScheduleList);
+            busSchedule.setAlerts(alertInfoList);
+            return busSchedule;
+        } catch (NumberFormatException e) {
+            Logger.error(e.getMessage());
+        }
+        return new BusSchedule();
     }
 }

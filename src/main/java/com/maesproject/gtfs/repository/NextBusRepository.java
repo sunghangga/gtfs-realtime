@@ -38,7 +38,7 @@ public class NextBusRepository {
     public List<Tuple> getStopByParam(String param) {
         String sql = "select stop_code, stop_name\n" +
                 "from stops\n" +
-                "where stop_code <> ''\n" +
+                "where location_type = '0'\n" +
                 "and (\n" +
                 "\tlower(stop_code) like '%" + param.toLowerCase() + "%'\n" +
                 "\tor\n" +

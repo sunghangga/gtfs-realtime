@@ -83,11 +83,15 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getTripHeadSignByRoute(String routeShortName) {
+    public List<Tuple> getTripHeadSignByRoute(String routeShortName, String arrayServiceId) {
         String sql = "select t.direction_id, t.trip_headsign\n" +
                 "from trips t\n" +
+                "join stop_times st on st.trip_id = t.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +
-                "where r.route_short_name = '" + routeShortName + "'\n" +
+                "where st.pickup_type is distinct from '1'\n" +
+                "and st.drop_off_type is distinct from '1'\n" +
+                "and r.route_short_name = '" + routeShortName + "'\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
                 "group by t.direction_id, t.trip_headsign\n" +
                 "order by t.direction_id";
 

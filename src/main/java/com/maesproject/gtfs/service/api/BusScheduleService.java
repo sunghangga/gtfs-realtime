@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.maesproject.gtfs.entity.BusSchedule;
 import com.maesproject.gtfs.repository.BusScheduleRepository;
+import com.maesproject.gtfs.repository.NextBusRepository;
 import com.maesproject.gtfs.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,8 @@ import java.util.List;
 public class BusScheduleService {
     @Autowired
     private BusScheduleRepository busScheduleRepository;
+    @Autowired
+    private NextBusRepository nextBusRepository;
     @Autowired
     private NextBusService nextBusService;
 
@@ -67,8 +70,9 @@ public class BusScheduleService {
             objectResult.set("routes", arrayRoute);
 
             // find lines
-//        ArrayNode arrayLine = new ObjectMapper().createArrayNode();
-//        objectResult.set("lines", arrayLine);
+//            ArrayNode arrayLine = new ObjectMapper().createArrayNode();
+//            objectResult.set("lines", arrayLine);
+
         } catch (Exception e) {
             Logger.error(e.getMessage());
         }
@@ -122,6 +126,7 @@ public class BusScheduleService {
                         .replace("Northbound", "")
                         .replace("Southbound", "")
                         .trim();
+
                 BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
                 stopSchedule.setStopCode(tuple.get("stop_code").toString());
                 stopSchedule.setStopName(stopName);
@@ -136,8 +141,9 @@ public class BusScheduleService {
                 stopScheduleList.add(stopSchedule);
             }
 
-            // get direction
             List<BusSchedule.RouteDirection> routeDirectionList = new ArrayList<>();
+
+            // get direction
             List<Tuple> directionList = busScheduleRepository.getDirectionByRoute(routeShortName);
             for (Tuple tuple : directionList) {
                 BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
@@ -146,8 +152,31 @@ public class BusScheduleService {
                 routeDirectionList.add(routeDirection);
             }
 
-            // get alternate direction if direction not found
-            if (directionList.isEmpty()) {
+            // get trip head sign if direction not found
+            if (routeDirectionList.isEmpty()) {
+                List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName, arrayServiceId);
+                String directionCheck = "";
+                for (Tuple tuple : tripHeadSignList) {
+                    String direction = tuple.get("direction_id").toString();
+                    if (directionCheck.equals(direction)) continue;
+                    else directionCheck = direction;
+
+                    String combinedTripHeadSign = "";
+                    for (Tuple tupleDirection : tripHeadSignList) {
+                        if (!direction.equals(tupleDirection.get("direction_id").toString())) continue;
+
+                        String tripHeadSign = tupleDirection.get("trip_headsign").toString();
+                        combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
+                    }
+                    BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
+                    routeDirection.setDirectionId(Integer.parseInt(direction));
+                    routeDirection.setDirectionName(combinedTripHeadSign);
+                    routeDirectionList.add(routeDirection);
+                }
+            }
+
+            // get inbound/outbound if trip head sign not found
+            if (routeDirectionList.isEmpty()) {
                 List<Tuple> alternateDirectionList = busScheduleRepository.getAlternateDirectionByRoute(routeShortName);
                 for (Tuple tuple : alternateDirectionList) {
                     BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
@@ -196,6 +225,7 @@ public class BusScheduleService {
             busSchedule.setStopSchedules(stopScheduleList);
             busSchedule.setAlerts(alertInfoList);
             return busSchedule;
+
         } catch (NumberFormatException e) {
             Logger.error(e.getMessage());
         }

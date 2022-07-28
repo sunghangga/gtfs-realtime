@@ -27,6 +27,7 @@ public class BusScheduleRepository {
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "group by r.route_short_name, r.route_long_name, dne.direction_id, dne.direction_name\n" +
                 "order by r.route_short_name, dne.direction_id";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -43,6 +44,7 @@ public class BusScheduleRepository {
                 "\tand t.direction_id = '" + directionId + "'\n" +
                 ") as x\n" +
                 "join stops s on s.stop_id = x.stop_id";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -59,6 +61,7 @@ public class BusScheduleRepository {
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "and to_date('" + date + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "'\n" +
                 "order by st.arrival_time";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -69,6 +72,7 @@ public class BusScheduleRepository {
                 "from public.direction_names_exceptions\n" +
                 "where route_name = '" + routeShortName + "'\n" +
                 "order by direction_id";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();
@@ -80,6 +84,7 @@ public class BusScheduleRepository {
                 "join routes r on r.route_id = t.route_id\n" +
                 "where r.route_short_name = '" + routeShortName + "'\n" +
                 "order by t.direction_id";
+
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
         return query.getResultList();

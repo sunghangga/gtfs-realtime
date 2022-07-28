@@ -95,7 +95,9 @@ public class NextBusService {
         String routeLongName = "";
         try {
             // get trip head sign (as direction)
-            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName);
+            LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+            String arrayServiceId = getActiveServiceId(tripStartDate);
+            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName, arrayServiceId);
             String directionCheck = "";
             for (Tuple tuple : tripHeadSignList) {
                 String direction = tuple.get("direction_id").toString();

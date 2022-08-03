@@ -20,13 +20,32 @@ public class BusScheduleRepository {
                 "join trips t on t.route_id = r.route_id\n" +
                 "where r.route_type = '3'\n" +
                 "and (\n" +
-                "\tlower(route_short_name) like '%" + param.toLowerCase() + "%'\n" +
+                "\tlower(r.route_short_name) like '%" + param.toLowerCase() + "%'\n" +
                 "\tor\n" +
-                "\tlower(route_long_name) like '%" + param.toLowerCase() + "%'\n" +
+                "\tlower(r.route_long_name) like '%" + param.toLowerCase() + "%'\n" +
                 ")\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
                 "group by r.route_short_name, r.route_long_name, dne.direction_id, dne.direction_name\n" +
                 "order by r.route_short_name, dne.direction_id";
+
+        Query query = entityManager.createNativeQuery(sql, Tuple.class);
+        entityManager.close();
+        return query.getResultList();
+    }
+
+    public List<Tuple> getRouteAndTripHeadSignByParam(String param, String arrayServiceId) {
+        String sql = "select r.route_short_name, r.route_long_name, t.direction_id, t.trip_headsign\n" +
+                "from routes r\n" +
+                "join trips t on t.route_id = r.route_id\n" +
+                "where r.route_type = '3'\n" +
+                "and (\n" +
+                "\tlower(r.route_short_name) like '%" + param.toLowerCase() + "%'\n" +
+                "\tor\n" +
+                "\tlower(r.route_long_name) like '%" + param.toLowerCase() + "%'\n" +
+                ")\n" +
+                "and t.service_id in (" + arrayServiceId + ")\n" +
+                "group by r.route_short_name, r.route_long_name, t.direction_id, t.trip_headsign\n" +
+                "order by r.route_short_name, t.direction_id, t.trip_headsign";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();
@@ -72,18 +91,6 @@ public class BusScheduleRepository {
                 "from public.direction_names_exceptions\n" +
                 "where route_name = '" + routeShortName + "'\n" +
                 "order by direction_id";
-
-        Query query = entityManager.createNativeQuery(sql, Tuple.class);
-        entityManager.close();
-        return query.getResultList();
-    }
-
-    public List<Tuple> getAlternateDirectionByRoute(String routeShortName) {
-        String sql = "select distinct(t.direction_id)\n" +
-                "from trips t\n" +
-                "join routes r on r.route_id = t.route_id\n" +
-                "where r.route_short_name = '" + routeShortName + "'\n" +
-                "order by t.direction_id";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();

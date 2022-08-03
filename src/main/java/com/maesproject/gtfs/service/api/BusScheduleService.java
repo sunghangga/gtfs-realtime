@@ -37,15 +37,15 @@ public class BusScheduleService {
         try {
             // find routes
             ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
-            ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
             ObjectNode objectRoute = new ObjectMapper().createObjectNode();
+            ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
 
             LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
             String arrayServiceId = nextBusService.getActiveServiceId(tripStartDate);
-            List<Tuple> routeList = busScheduleRepository.getRouteAndDirectionByParam(param, arrayServiceId);
+            List<Tuple> routeDirectionList = busScheduleRepository.getRouteAndDirectionByParam(param, arrayServiceId);
 
             String lastRouteShortName = "";
-            for (Tuple tuple : routeList) {
+            for (Tuple tuple : routeDirectionList) {
                 String routeShortName = tuple.get("route_short_name").toString();
                 if (routeShortName.equals(lastRouteShortName)) {
                     ObjectNode objectDirection = new ObjectMapper().createObjectNode();
@@ -58,6 +58,7 @@ public class BusScheduleService {
                     objectRoute.put("routeShortName", tuple.get("route_short_name").toString());
                     objectRoute.put("routeLongName", tuple.get("route_long_name").toString());
                     arrayRoute.add(objectRoute);
+
                     ObjectNode objectDirection = new ObjectMapper().createObjectNode();
                     objectDirection.put("directionId", tuple.get("direction_id").toString());
                     objectDirection.put("directionName", tuple.get("direction_name").toString());
@@ -67,6 +68,52 @@ public class BusScheduleService {
                 }
                 objectRoute.set("directions", arrayDirection);
             }
+
+            // get trip head sign if direction not found
+            if (arrayRoute.isEmpty()) {
+                List<Tuple> tripHeadSignList = busScheduleRepository.getRouteAndTripHeadSignByParam(param, arrayServiceId);
+                String routeCheck = "";
+                for (Tuple tuple : tripHeadSignList) {
+                    String routeShortName = tuple.get("route_short_name").toString();
+                    if (routeCheck.equals(routeShortName)) continue;
+                    else routeCheck = routeShortName;
+
+                    objectRoute = new ObjectMapper().createObjectNode();
+                    objectRoute.put("routeShortName", routeShortName);
+                    objectRoute.put("routeLongName", tuple.get("route_long_name").toString());
+
+                    arrayDirection = new ObjectMapper().createArrayNode();
+                    String directionCheck = "";
+                    for (Tuple tupleDirection : tripHeadSignList) {
+                        if (!routeCheck.equals(tupleDirection.get("route_short_name").toString())) continue;
+
+                        String directionId = tupleDirection.get("direction_id").toString();
+                        if (directionCheck.equals(directionId)) continue;
+                        else directionCheck = directionId;
+
+                        ObjectNode objectDirection = new ObjectMapper().createObjectNode();
+                        objectDirection.put("directionId", directionId);
+
+                        String combinedTripHeadSign = "";
+                        for (Tuple tupleTripHeadSign : tripHeadSignList) {
+                            if (!routeShortName.equals(tupleTripHeadSign.get("route_short_name").toString())) continue;
+                            if (!directionId.equals(tupleTripHeadSign.get("direction_id").toString())) continue;
+
+                            String tripHeadSign = tupleTripHeadSign.get("trip_headsign").toString();
+                            combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " | " + tripHeadSign;
+                        }
+                        if (combinedTripHeadSign.isEmpty()) {
+                            combinedTripHeadSign = directionId.equals("0") ? "Outbound" : "Inbound";
+                        }
+
+                        objectDirection.put("directionName", combinedTripHeadSign);
+                        arrayDirection.add(objectDirection);
+                    }
+                    objectRoute.set("directions", arrayDirection);
+                    arrayRoute.add(objectRoute);
+                }
+            }
+
             objectResult.set("routes", arrayRoute);
 
             // find lines
@@ -166,23 +213,15 @@ public class BusScheduleService {
                         if (!direction.equals(tupleDirection.get("direction_id").toString())) continue;
 
                         String tripHeadSign = tupleDirection.get("trip_headsign").toString();
-                        combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;
+                        combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " | " + tripHeadSign;
                     }
+                    if (combinedTripHeadSign.isEmpty()) {
+                        combinedTripHeadSign = direction.equals("0") ? "Outbound" : "Inbound";
+                    }
+
                     BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
                     routeDirection.setDirectionId(Integer.parseInt(direction));
                     routeDirection.setDirectionName(combinedTripHeadSign);
-                    routeDirectionList.add(routeDirection);
-                }
-            }
-
-            // get inbound/outbound if trip head sign not found
-            if (routeDirectionList.isEmpty()) {
-                List<Tuple> alternateDirectionList = busScheduleRepository.getAlternateDirectionByRoute(routeShortName);
-                for (Tuple tuple : alternateDirectionList) {
-                    BusSchedule.RouteDirection routeDirection = new BusSchedule.RouteDirection();
-                    int direction = Integer.parseInt(tuple.get("direction_id").toString());
-                    routeDirection.setDirectionId(direction);
-                    routeDirection.setDirectionName(direction == 0 ? "Outbound" : "Inbound");
                     routeDirectionList.add(routeDirection);
                 }
             }

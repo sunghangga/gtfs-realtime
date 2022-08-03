@@ -97,6 +97,7 @@ public class NextBusService {
             // get trip head sign (as direction)
             LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
             String arrayServiceId = getActiveServiceId(tripStartDate);
+
             List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRoute(routeShortName, arrayServiceId);
             String directionCheck = "";
             for (Tuple tuple : tripHeadSignList) {
@@ -135,6 +136,9 @@ public class NextBusService {
 
     public String getDestinationStops(String routeShortName, int directionId) {
         ArrayNode arrayStop = new ObjectMapper().createArrayNode();
+        LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
+        String arrayServiceId = getActiveServiceId(tripStartDate);
+
         String combinedTripHeadSign = "";
         try {
             // get stop
@@ -156,7 +160,7 @@ public class NextBusService {
             }
 
             // get trip head sign
-            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId);
+            List<Tuple> tripHeadSignList = nextBusRepository.getTripHeadSignByRouteAndDirection(routeShortName, directionId, arrayServiceId);
             for (Tuple tuple : tripHeadSignList) {
                 String tripHeadSign = tuple.get("trip_headsign").toString();
                 combinedTripHeadSign = combinedTripHeadSign.isEmpty() ? tripHeadSign : combinedTripHeadSign + " / " + tripHeadSign;

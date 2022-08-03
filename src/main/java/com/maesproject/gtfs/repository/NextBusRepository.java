@@ -100,12 +100,13 @@ public class NextBusRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getTripHeadSignByRouteAndDirection(String routeShortName, int directionId) {
+    public List<Tuple> getTripHeadSignByRouteAndDirection(String routeShortName, int directionId, String arrayServiceId) {
         String sql = "select distinct(t.trip_headsign)\n" +
                 "from trips t\n" +
                 "join routes r on r.route_id = t.route_id\n" +
                 "where r.route_short_name = '" + routeShortName + "'\n" +
-                "and t.direction_id = '" + directionId + "'";
+                "and t.direction_id = '" + directionId + "'\n" +
+                "and t.service_id in (" + arrayServiceId + ")";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);
         entityManager.close();

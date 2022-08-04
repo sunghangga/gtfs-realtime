@@ -269,7 +269,7 @@ public class NextBusService {
                 directionId = Integer.parseInt(tuple.get("direction_id").toString());
             }
 
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             Logger.error(e.getMessage());
         }
 
@@ -362,7 +362,7 @@ public class NextBusService {
                 stopName = tuple.get("stop_name").toString().replace("@", "at");
             }
 
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             Logger.error(e.getMessage());
         }
 

@@ -265,7 +265,7 @@ public class BusScheduleService {
             busSchedule.setAlerts(alertInfoList);
             return busSchedule;
 
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             Logger.error(e.getMessage());
         }
         return new BusSchedule();

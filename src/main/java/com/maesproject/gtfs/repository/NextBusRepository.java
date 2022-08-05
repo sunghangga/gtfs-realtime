@@ -18,6 +18,8 @@ public class NextBusRepository {
     private EntityManager entityManager;
 
     public List<Tuple> getRouteByParam(String param, String arrayServiceId) {
+        param = param.replace("'", "''");
+
         String sql = "select distinct(r.route_short_name), r.route_long_name\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +
@@ -36,6 +38,8 @@ public class NextBusRepository {
     }
 
     public List<Tuple> getStopByParam(String param) {
+        param = param.replace("'", "''");
+
         String sql = "select stop_code, stop_name\n" +
                 "from stops\n" +
                 "where (location_type = '0' or location_type is null)\n" +
@@ -193,6 +197,8 @@ public class NextBusRepository {
     }
 
     public List<Tuple> getNextDeparturePerTripHeadSignUnion(String routeShortName, String stopCode, String tripHeadSign, String[] arrayServiceId, String[] arrayDateWithoutDash, String timeZone) {
+        tripHeadSign = tripHeadSign.replace("'", "''");
+
         String sql = "" +
                 "select * from next_bus_per_trip_head_sign('" + routeShortName + "', '" + stopCode + "', '" + tripHeadSign + "', array[" + arrayServiceId[0] + "], '" + arrayDateWithoutDash[0] + "', '" + timeZone + "')\n" +
                 "where rounded_minute <= 120\n" +
@@ -265,6 +271,7 @@ public class NextBusRepository {
                 "and s.stop_code = '" + stopCode + "'\n";
 
         if (!tripHeadSign.isEmpty()) {
+            tripHeadSign = tripHeadSign.replace("'", "''");
             sql += "and t.trip_headsign = '" + tripHeadSign + "'\n";
         }
 
@@ -304,9 +311,11 @@ public class NextBusRepository {
                 "union\n" +
                 "select * from next_bus_map_by_stop('" + stopCode + "', array[" + arrayServiceId[1] + "], '" + arrayDateWithoutDash[1] + "', '" + timeZone + "')\n" +
                 "where rounded_minute <= 120\n";
+
         if (!routeShortName.isEmpty()) {
             sql += "and route_short_name = '" + routeShortName + "'\n";
         }
+
         sql += "order by route_short_name, rounded_minute";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);

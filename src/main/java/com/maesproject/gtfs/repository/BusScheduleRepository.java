@@ -14,6 +14,8 @@ public class BusScheduleRepository {
     private EntityManager entityManager;
 
     public List<Tuple> getRouteAndDirectionByParam(String param, String arrayServiceId) {
+        param = param.replace("'", "''");
+
         String sql = "select r.route_short_name, r.route_long_name, dne.direction_id, dne.direction_name\n" +
                 "from routes r\n" +
                 "join direction_names_exceptions dne on dne.route_name = r.route_short_name\n" +
@@ -34,6 +36,8 @@ public class BusScheduleRepository {
     }
 
     public List<Tuple> getRouteAndTripHeadSignByParam(String param, String arrayServiceId) {
+        param = param.replace("'", "''");
+
         String sql = "select r.route_short_name, r.route_long_name, t.direction_id, t.trip_headsign\n" +
                 "from routes r\n" +
                 "join trips t on t.route_id = r.route_id\n" +
@@ -53,7 +57,7 @@ public class BusScheduleRepository {
     }
 
     public List<Tuple> getStop(String routeShortName, int directionId) {
-        String sql = "select s.stop_id, s.stop_code, s.stop_name\n" +
+        String sql = "select s.stop_code, s.stop_name\n" +
                 "from (\n" +
                 "\tselect distinct(st.stop_id)\n" +
                 "\tfrom stop_times st\n" +
@@ -69,16 +73,17 @@ public class BusScheduleRepository {
         return query.getResultList();
     }
 
-    public List<Tuple> getArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopId, String date, String startDateTime, String endDateTime) {
+    public List<Tuple> getArrivalTime(String routeShortName, int directionId, String arrayServiceId, String stopCode, String tripStartDate, String startDateTime, String endDateTime) {
         String sql = "select cast(st.arrival_time as time) as time_schedule\n" +
                 "from stop_times st\n" +
                 "join trips t on t.trip_id = st.trip_id\n" +
                 "join routes r on r.route_id = t.route_id\n" +
+                "join stops s on s.stop_id = st.stop_id\n" +
                 "where r.route_short_name = '" + routeShortName + "'\n" +
                 "and t.direction_id = '" + directionId + "'\n" +
-                "and st.stop_id = '" + stopId + "'\n" +
+                "and s.stop_code = '" + stopCode + "'\n" +
                 "and t.service_id in (" + arrayServiceId + ")\n" +
-                "and to_date('" + date + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "'\n" +
+                "and to_date('" + tripStartDate + "', 'YYYY-MM-DD') + st.arrival_time between '" + startDateTime + "' and '" + endDateTime + "'\n" +
                 "order by st.arrival_time";
 
         Query query = entityManager.createNativeQuery(sql, Tuple.class);

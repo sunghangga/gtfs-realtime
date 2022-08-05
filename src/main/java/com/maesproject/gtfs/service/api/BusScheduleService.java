@@ -174,16 +174,18 @@ public class BusScheduleService {
                         .replace("Southbound", "")
                         .trim();
 
-                BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
-                stopSchedule.setStopCode(tuple.get("stop_code").toString());
-                stopSchedule.setStopName(stopName);
-                String stopId = tuple.get("stop_id").toString();
-                List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopId, date.toString(), startDateTime, endDateTime);
+                String stopCode = tuple.get("stop_code").toString();
+
+                List<Tuple> arrivalTimeList = busScheduleRepository.getArrivalTime(routeShortName, directionId, arrayServiceId, stopCode, date.toString(), startDateTime, endDateTime);
                 List<String> scheduleList = new ArrayList<>();
                 for (Tuple arrivalTime : arrivalTimeList) {
                     LocalTime time = LocalTime.parse(arrivalTime.get("time_schedule").toString());
                     scheduleList.add(time.format(DateTimeFormatter.ofPattern("h:mm a")).toLowerCase());
                 }
+
+                BusSchedule.StopSchedule stopSchedule = new BusSchedule.StopSchedule();
+                stopSchedule.setStopCode(stopCode);
+                stopSchedule.setStopName(stopName);
                 stopSchedule.setArrivalTimes(scheduleList);
                 stopScheduleList.add(stopSchedule);
             }

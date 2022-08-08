@@ -80,10 +80,14 @@ public class NextBusService {
 
     public String checkParam(String param) {
         try {
+            // check if param matches with route short name
             int result = nextBusRepository.countRoute(param);
             if (result > 0) return "route";
+
+            // check if param matches with stop code
             result = nextBusRepository.countStop(param);
             if (result > 0) return "stop";
+
         } catch (Exception e) {
             Logger.error(e.getMessage());
         }
@@ -183,6 +187,7 @@ public class NextBusService {
         String stopName = "";
         String routeLongName = "";
         int directionId = 0;
+
         try {
             // find trip start date
             LocalDate tripStartDate = getTripStartDateByStop(stopCode);
@@ -197,7 +202,7 @@ public class NextBusService {
             // get active service id
             String arrayServiceId = getActiveServiceId(tripStartDate);
 
-            // set trip start date and service id for next day
+            // set trip start date and service id for the next day
             LocalDate nextTripStartDate = tripStartDate.plusDays(1);
             String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
@@ -300,7 +305,7 @@ public class NextBusService {
             // get service id
             String arrayServiceId = getActiveServiceId(tripStartDate);
 
-            // set nest trip start date and service id
+            // set trip start date and service id for the next day
             LocalDate nextTripStartDate = tripStartDate.plusDays(1);
             String nextTripStartDateWithoutDash = nextTripStartDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String nextArrayServiceId = getActiveServiceId(nextTripStartDate);
@@ -404,7 +409,7 @@ public class NextBusService {
 
     public LocalDate getTripStartDateByStop(String stopCode) {
         // check if ongoing trip is from today's trip or from yesterday's trip
-        // by comparing current time to the latest departure time of the route/stop
+        // by comparing current time to the latest departure time for that stop
         LocalDate tripStartDate = null;
         try {
             // get last departure time

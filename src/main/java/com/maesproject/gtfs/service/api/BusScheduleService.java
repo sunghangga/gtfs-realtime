@@ -35,7 +35,7 @@ public class BusScheduleService {
     public String getRouteByParam(String param) {
         ObjectNode objectResult = new ObjectMapper().createObjectNode();
         try {
-            // find routes
+            // find routes and directions
             ArrayNode arrayRoute = new ObjectMapper().createArrayNode();
             ObjectNode objectRoute = new ObjectMapper().createObjectNode();
             ArrayNode arrayDirection = new ObjectMapper().createArrayNode();
@@ -150,9 +150,6 @@ public class BusScheduleService {
             }
             end = LocalTime.parse(endTime);
 
-            // get service id
-            String arrayServiceId = nextBusService.getActiveServiceId(date);
-
             String startDateTime = date + " " + start;
             String endDateTime = date + " " + end;
 
@@ -162,6 +159,9 @@ public class BusScheduleService {
                 nextDate = date.plusDays(1);
                 endDateTime = nextDate + " " + end;
             }
+
+            // get service id
+            String arrayServiceId = nextBusService.getActiveServiceId(date);
 
             // get stop
             List<BusSchedule.StopSchedule> stopScheduleList = new ArrayList<>();

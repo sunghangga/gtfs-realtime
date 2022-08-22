@@ -21,11 +21,7 @@ public class NextBusController {
     @Autowired
     private NextBusMapService nextBusMapService;
 
-    @GetMapping(value = "/api/gtfs/next-bus/route", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getAllRoute() {
-        String response = nextBusService.getActiveRoutes();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
+    // ========== API for search menu ==========
 
     @GetMapping(value = "/api/gtfs/next-bus/find", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getSuggestionRouteAndStop(@RequestParam String param) {
@@ -50,6 +46,14 @@ public class NextBusController {
         Map<String, String> response = new HashMap<>();
         response.put("status", "error");
         response.put("message", "Invalid input for route name or stop code!");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    // ==================== *** ====================
+
+    @GetMapping(value = "/api/gtfs/next-bus/route", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getAllRoute() {
+        String response = nextBusService.getAllRoute();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

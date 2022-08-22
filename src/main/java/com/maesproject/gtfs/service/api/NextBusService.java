@@ -25,7 +25,7 @@ public class NextBusService {
     @Value("${timezone}")
     private String timeZone;
 
-    public String getActiveRoutes() {
+    public String getAllRoute() {
         ArrayNode arrayNode = new ObjectMapper().createArrayNode();
         try {
             LocalDate tripStartDate = LocalDate.now(ZoneId.of(timeZone));
@@ -445,6 +445,7 @@ public class NextBusService {
         } catch (Exception e) {
             Logger.error(e.getMessage());
         }
+        if (arrayServiceId.isEmpty()) arrayServiceId = "''";
         return arrayServiceId;
     }
 

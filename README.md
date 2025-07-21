@@ -10,7 +10,7 @@ This app also provide feature for deleting old realtime data automatically in a 
 #### 1. Clone repository:
 
 ```
-git clone https://dewa_maestronic@bitbucket.org/dewa_maestronic/gtfs-realtime.git
+git clone https://github.com/sunghangga/gtfs-realtime.git
 ```
 
 #### 2. Open project using IntelliJ or other java IDE
